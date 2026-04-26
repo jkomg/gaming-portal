@@ -18,6 +18,50 @@ def _require_staff():
     pass
 
 
+# ── One-time fix: correct Keys/Vecna category mappings ─────────────────────────
+
+@bp.route('/fix-category-mappings', methods=['POST'])
+def fix_category_mappings():
+    """Apply correct Notion DB → category mappings for Keys and Vecna."""
+    fixes = {
+        'keys': {
+            'notion_databases': {
+                'characters': '3483a3e5-cab1-817a-a15a-ffc8223aa1bf',
+                'npcs':       '3483a3e5-cab1-81ac-b84f-e62686a85b51',
+                'chapters':   '3483a3e5-cab1-81e8-a61d-c540cbe7cd26',
+            },
+            'wiki_categories': [
+                {'slug': 'characters', 'name': 'Characters', 'icon': 'bi-person-fill'},
+                {'slug': 'npcs',       'name': 'NPCs',       'icon': 'bi-person-lines-fill'},
+                {'slug': 'chapters',   'name': 'Chapters',   'icon': 'bi-book-fill'},
+            ],
+        },
+        'vecna': {
+            'notion_databases': {
+                'characters': '3483a3e5-cab1-81a2-a4bf-c05bdb1f35b6',
+                'npcs':       '3483a3e5-cab1-8157-aa2d-e0f26e067598',
+                'chapters':   '3483a3e5-cab1-8102-b08c-db68df72deab',
+            },
+            'wiki_categories': [
+                {'slug': 'characters', 'name': 'Characters', 'icon': 'bi-person-fill'},
+                {'slug': 'npcs',       'name': 'NPCs',       'icon': 'bi-person-lines-fill'},
+                {'slug': 'chapters',   'name': 'Chapters',   'icon': 'bi-book-fill'},
+            ],
+        },
+    }
+    updated = []
+    for slug, data in fixes.items():
+        c = Campaign.query.filter_by(slug=slug).first()
+        if c:
+            c._notion_databases = json.dumps(data['notion_databases'])
+            c._wiki_categories  = json.dumps(data['wiki_categories'])
+            c.updated_at        = datetime.now(timezone.utc)
+            updated.append(c.name)
+    db.session.commit()
+    flash(f'Updated category mappings for: {", ".join(updated)}. Run Notion sync for each to reclassify pages.', 'success')
+    return redirect(url_for('admin.index'))
+
+
 @bp.route('/')
 def index():
     campaigns = Campaign.query.order_by(Campaign.sort_order, Campaign.name).all()
