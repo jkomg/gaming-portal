@@ -60,7 +60,10 @@ def create_app() -> Flask:
 
     # Create tables on first run
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception:
+            pass  # already exists (multi-worker race) — safe to ignore
         _seed_campaigns_if_empty()
 
     return app
