@@ -1,0 +1,136 @@
+{% extends "wiki/base.html" %}
+{% block title %}{{ page.title }} — {{ campaign.name }} Wiki{% endblock %}
+
+{% block wiki_hero %}
+<div class="wiki-page-hero {% if page.cover_image_url %}wiki-page-hero--cover{% endif %}"
+     {% if page.cover_image_url %}style="--cover-url:url('{{ page.cover_image_url }}');"{% endif %}>
+    <div class="container-xl px-3 px-md-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb wiki-breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}">Wiki</a></li>
+                {% if page.category %}
+                {% set cat = wiki_categories | selectattr('slug', 'equalto', page.category) | first %}
+                {% if cat %}
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('wiki.category', campaign_slug=campaign.slug, category=page.category) }}">{{ cat.name }}</a>
+                </li>
+                {% endif %}
+                {% endif %}
+                <li class="breadcrumb-item active">{{ page.title }}</li>
+            </ol>
+        </nav>
+        <h1 class="wiki-page-hero-title mb-0">{{ page.title }}</h1>
+        {% if page.summary %}<p class="wiki-page-hero-summary mt-2 mb-0">{{ page.summary }}</p>{% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+{# ── Main content ── #}
+<div class="col-lg-{% if is_staff %}8{% else %}12{% endif %}">
+
+    {# Status banners for non-active pages #}
+    {% if page.status == 'draft' %}
+    <div class="alert alert-secondary d-flex align-items-center gap-2">
+        <i class="bi bi-pencil-square"></i>
+        <span>This page is a <strong>draft</strong> — only visible to staff.</span>
+    </div>
+    {% elif page.status == 'upcoming' %}
+    <div class="alert alert-info d-flex align-items-center gap-2">
+        <i class="bi bi-hourglass-split"></i>
+        <span>This page is marked <strong>upcoming</strong> — content may change.</span>
+    </div>
+    {% elif page.status == 'archived' %}
+    <div class="alert alert-dark d-flex align-items-center gap-2">
+        <i class="bi bi-archive"></i>
+        <span>This page is <strong>archived</strong> — only visible to staff.</span>
+    </div>
+    {% endif %}
+
+    {# Notion source banner #}
+    {% if page.source == 'notion' %}
+    <div class="alert alert-secondary py-2 d-flex align-items-center gap-2 small">
+        <i class="bi bi-arrow-repeat"></i>
+        Synced from Notion.
+        {% if is_staff %}<span class="text-muted">Manual edits will be overwritten on next sync.</span>{% endif %}
+    </div>
+    {% endif %}
+
+    <div class="wiki-body-content">
+        {{ body_html }}
+    </div>
+
+    <div class="wiki-page-meta mt-5 pt-4 border-top border-secondary border-opacity-25 text-muted small d-flex flex-wrap gap-3">
+        <span><i class="bi bi-clock me-1"></i>Updated {{ page.updated_at.strftime('%b %d, %Y') if page.updated_at else 'unknown' }}</span>
+        {% if page.updated_by %}<span><i class="bi bi-person me-1"></i>{{ page.updated_by }}</span>{% endif %}
+        {% if page.source == 'notion' %}<span><i class="bi bi-arrow-repeat me-1"></i>Notion</span>{% endif %}
+    </div>
+</div>
+
+{# ── Staff sidebar ── #}
+{% if is_staff %}
+<div class="col-lg-4">
+    <div class="wiki-staff-sidebar">
+        <div class="wiki-staff-sidebar-header">
+            <i class="bi bi-shield-lock me-2 text-muted"></i>Staff Controls
+        </div>
+
+        {# Edit button #}
+        <div class="wiki-staff-sidebar-section">
+            <a href="{{ url_for('wiki.edit_page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
+               class="btn btn-sm btn-outline-primary w-100">
+                <i class="bi bi-pencil me-1"></i>Edit Page
+            </a>
+        </div>
+
+        {# Status picker #}
+        <div class="wiki-staff-sidebar-section">
+            <div class="wiki-staff-sidebar-label">Status</div>
+            <form method="post"
+                  action="{{ url_for('wiki.set_status', campaign_slug=campaign.slug, page_slug=page.slug) }}"
+                  class="d-flex gap-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="status" class="form-select form-select-sm flex-grow-1">
+                    {% for s in wiki_statuses %}
+                    <option value="{{ s }}" {% if page.status == s %}selected{% endif %}>
+                        {{ wiki_status_labels[s] }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Apply">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+            </form>
+        </div>
+
+        {# Page info #}
+        <div class="wiki-staff-sidebar-section wiki-staff-sidebar-meta">
+            {% if page.category %}
+            <div><span class="wiki-staff-meta-label">Category</span>
+                {% set cat = wiki_categories | selectattr('slug', 'equalto', page.category) | first %}
+                {{ cat.name if cat else page.category }}
+            </div>
+            {% endif %}
+            <div><span class="wiki-staff-meta-label">Slug</span><code class="small">{{ page.slug }}</code></div>
+            <div><span class="wiki-staff-meta-label">Source</span>{{ page.source or 'manual' }}</div>
+        </div>
+
+        {# Delete #}
+        <div class="wiki-staff-sidebar-section mt-2">
+            <form method="post"
+                  action="{{ url_for('wiki.delete_page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
+                  onsubmit="return confirm('Delete &quot;{{ page.title }}&quot;? This cannot be undone.')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                    <i class="bi bi-trash me-1"></i>Delete Page
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

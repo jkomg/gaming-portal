@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — jkomg Gaming</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="d-flex align-items-center justify-content-center min-vh-100" style="background:#0d1117;">
+<div class="card" style="width:360px;background:#161b22;border:1px solid rgba(255,255,255,0.1);">
+    <div class="card-body p-4 text-center">
+        <img src="{{ url_for('static', filename='img/hero.png') }}" alt="" style="width:80px;height:80px;object-fit:cover;border-radius:50%;margin-bottom:1rem;">
+        <h5 class="mb-1 fw-semibold">jkomg Gaming</h5>
+        <p class="text-muted small mb-4">Staff sign-in required</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} py-2 small">{{ msg }}</div>
+        {% endfor %}
+        {% endwith %}
+        <a href="{{ url_for('auth.discord_redirect') }}" class="btn w-100" style="background:#5865F2;color:#fff;">
+            <svg width="18" height="14" viewBox="0 0 71 55" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="me-2">
+                <path d="M60.1 4.9A58.5 58.5 0 0 0 45.4.2a.2.2 0 0 0-.2.1 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.3 37.3 0 0 0 25.4.3a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.5 4.9a.2.2 0 0 0-.1.1C1.5 18-.9 30.6.3 43a.3.3 0 0 0 .1.2 58.9 58.9 0 0 0 17.7 9 .2.2 0 0 0 .3-.1 42 42 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.8 38.8 0 0 1-5.5-2.6.2.2 0 0 1 0-.4l1.1-.9a.2.2 0 0 1 .2 0 42 42 0 0 0 35.8 0 .2.2 0 0 1 .2 0l1.1.9a.2.2 0 0 1 0 .4 36.4 36.4 0 0 1-5.5 2.6.2.2 0 0 0-.1.3 47.2 47.2 0 0 0 3.6 5.9.2.2 0 0 0 .3.1A58.7 58.7 0 0 0 70.7 43a.3.3 0 0 0 .1-.2c1.4-14.5-2.4-27-10-38.1a.2.2 0 0 0-.1 0z"/>
+            </svg>
+            Sign in with Discord
+        </a>
+        <div class="mt-3">
+            <a href="{{ url_for('portal.index') }}" class="text-muted small text-decoration-none">← Back to portal</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

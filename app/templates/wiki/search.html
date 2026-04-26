@@ -1,0 +1,83 @@
+{% extends "wiki/base.html" %}
+{% block title %}Search{% if q %}: {{ q }}{% endif %} — {{ campaign.name }} Wiki{% endblock %}
+
+{% block wiki_hero %}
+<div class="wiki-cat-hero">
+    <div class="container-xl px-3 px-md-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb wiki-breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}">Wiki</a></li>
+                <li class="breadcrumb-item active">Search</li>
+            </ol>
+        </nav>
+        <h1 class="wiki-cat-hero-title mb-0">Search</h1>
+        {% if q %}
+        <p class="wiki-cat-hero-count text-muted mt-1">
+            {{ results | length }} result{{ 's' if results | length != 1 }} for &ldquo;{{ q }}&rdquo;
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-9">
+
+    <form method="get" action="{{ url_for('wiki.search', campaign_slug=campaign.slug) }}" class="mb-4">
+        <div class="input-group">
+            <input type="search" name="q" class="form-control form-control-lg wiki-nav-search-input"
+                   placeholder="Search wiki…" value="{{ q }}" autofocus autocomplete="off">
+            <button type="submit" class="btn wiki-nav-search-btn px-4">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </form>
+
+    {% if q %}
+        {% if results %}
+        <div class="d-flex flex-column gap-3">
+            {% for r in results %}
+            {% set p = r.page %}
+            <a href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=p.slug) }}"
+               class="wiki-search-result text-decoration-none">
+                <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                    <h5 class="mb-0">{{ p.title }}</h5>
+                    <div class="d-flex gap-1 flex-shrink-0">
+                        {% if p.category %}
+                        {% set cat = wiki_categories | selectattr('slug', 'equalto', p.category) | first %}
+                        {% if cat %}
+                        <span class="badge bg-secondary">{{ cat.name }}</span>
+                        {% endif %}
+                        {% endif %}
+                        {% if p.status == 'draft' %}<span class="badge bg-secondary">Draft</span>
+                        {% elif p.status == 'upcoming' %}<span class="badge bg-info">Upcoming</span>
+                        {% elif p.status == 'archived' %}<span class="badge bg-dark">Archived</span>{% endif %}
+                    </div>
+                </div>
+                {% if r.excerpt %}
+                <p class="wiki-search-excerpt mb-0">{{ r.excerpt }}</p>
+                {% endif %}
+                <div class="wiki-search-meta mt-1">
+                    <i class="bi bi-clock me-1"></i>
+                    {{ p.updated_at.strftime('%b %d, %Y') if p.updated_at else '' }}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-search fs-1 d-block mb-2 opacity-25"></i>
+            No pages found for &ldquo;{{ q }}&rdquo;.
+        </div>
+        {% endif %}
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-search fs-1 d-block mb-2 opacity-25"></i>
+        Enter a search term above.
+    </div>
+    {% endif %}
+
+</div>
+</div>
+{% endblock %}

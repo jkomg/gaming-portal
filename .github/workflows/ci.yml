@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest flake8
+
+      - name: Lint
+        run: flake8 app --max-line-length=120 --extend-ignore=E501,W503
+
+      - name: Smoke test (app factory + DB init)
+        env:
+          SECRET_KEY: ci-secret
+          FLASK_ENV: testing
+          DATABASE_URL: sqlite:///ci_test.sqlite
+          DISCORD_CLIENT_ID: "000000000000000000"
+          DISCORD_CLIENT_SECRET: ci-placeholder
+          ALLOWED_DISCORD_IDS: "123456789"
+        run: |
+          python -c "
+          from app import create_app
+          app = create_app()
+          with app.app_context():
+              from app.db import db
+              db.create_all()
+              from app.db import Campaign
+              count = Campaign.query.count()
+              print(f'Smoke test passed. Campaigns seeded: {count}')
+          "
