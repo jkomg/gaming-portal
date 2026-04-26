@@ -10,6 +10,45 @@
 </head>
 <body>
 
+{% macro _render_card(c) %}
+<div class="col-md-4">
+    <a href="{{ c.effective_wiki_url or url_for('portal.campaign_home', campaign_slug=c.slug) }}"
+       class="campaign-card campaign-{{ c.slug }}">
+        <div class="campaign-img-wrap">
+            {% if c.cover_image_url %}
+            <img src="{{ c.cover_image_url }}" alt="" class="campaign-img
+                 {% if c.status != 'active' %}campaign-img--dimmed{% endif %}">
+            {% endif %}
+        </div>
+        <div class="campaign-body">
+            <div class="campaign-system">{{ c.system }}</div>
+            <div class="campaign-title">{{ c.name }}</div>
+            <div class="campaign-desc">{{ c.description }}</div>
+            <div class="campaign-status status-{{ c.status }}">
+                {{ status_labels.get(c.status, c.status) }}
+                {% if is_staff %}
+                <span class="ms-1 text-muted" style="font-size:0.7rem;">[{{ c.slug }}]</span>
+                {% endif %}
+            </div>
+        </div>
+    </a>
+    {% if is_staff %}
+    <div class="campaign-admin-bar mt-1 d-flex gap-1">
+        <form method="post" action="{{ url_for('admin.campaign_set_status', slug=c.slug) }}" class="d-flex gap-1 flex-grow-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="status" class="form-select form-select-sm" style="font-size:0.75rem;">
+                {% for s in ['active','upcoming','hiatus','complete'] %}
+                <option value="{{ s }}" {% if c.status == s %}selected{% endif %}>{{ status_labels[s] }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Apply"><i class="bi bi-check-lg"></i></button>
+        </form>
+        <a href="{{ url_for('admin.campaign_edit', slug=c.slug) }}" class="btn btn-sm btn-outline-secondary" title="Edit campaign"><i class="bi bi-pencil"></i></a>
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
 <div class="portal-hero">
     <img src="{{ url_for('static', filename='img/hero.png') }}" alt="" class="portal-hero-img">
     <div class="portal-hero-overlay">
@@ -64,45 +103,6 @@
 <footer class="footer text-center py-3">
     <small>jkomg.us &mdash; all campaigns &mdash; all worlds &mdash; created by <a href="mailto:jay@jkomg.us">jkomg</a></small>
 </footer>
-
-{% macro _render_card(c) %}
-<div class="col-md-4">
-    <a href="{{ c.effective_wiki_url or url_for('portal.campaign_home', campaign_slug=c.slug) }}"
-       class="campaign-card campaign-{{ c.slug }}">
-        <div class="campaign-img-wrap">
-            {% if c.cover_image_url %}
-            <img src="{{ c.cover_image_url }}" alt="" class="campaign-img
-                 {% if c.status != 'active' %}campaign-img--dimmed{% endif %}">
-            {% endif %}
-        </div>
-        <div class="campaign-body">
-            <div class="campaign-system">{{ c.system }}</div>
-            <div class="campaign-title">{{ c.name }}</div>
-            <div class="campaign-desc">{{ c.description }}</div>
-            <div class="campaign-status status-{{ c.status }}">
-                {{ status_labels.get(c.status, c.status) }}
-                {% if is_staff %}
-                <span class="ms-1 text-muted" style="font-size:0.7rem;">[{{ c.slug }}]</span>
-                {% endif %}
-            </div>
-        </div>
-    </a>
-    {% if is_staff %}
-    <div class="campaign-admin-bar mt-1 d-flex gap-1">
-        <form method="post" action="{{ url_for('admin.campaign_set_status', slug=c.slug) }}" class="d-flex gap-1 flex-grow-1">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <select name="status" class="form-select form-select-sm" style="font-size:0.75rem;">
-                {% for s in ['active','upcoming','hiatus','complete'] %}
-                <option value="{{ s }}" {% if c.status == s %}selected{% endif %}>{{ status_labels[s] }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Apply"><i class="bi bi-check-lg"></i></button>
-        </form>
-        <a href="{{ url_for('admin.campaign_edit', slug=c.slug) }}" class="btn btn-sm btn-outline-secondary" title="Edit campaign"><i class="bi bi-pencil"></i></a>
-    </div>
-    {% endif %}
-</div>
-{% endmacro %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
