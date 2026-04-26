@@ -113,7 +113,7 @@
         </div>
     </div>
 
-    {% if campaign and sync_logs %}
+    {% if campaign %}
     <div class="card mb-4" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
         <div class="card-header fw-semibold">Sync History</div>
         <div class="card-body p-0">
@@ -144,6 +144,9 @@
                         title="{{ log.detail }}">{{ log.detail }}</td>
                 </tr>
                 {% endfor %}
+                {% if not sync_logs %}
+                <tr><td colspan="4" class="text-muted text-center py-3">No syncs run yet.</td></tr>
+                {% endif %}
                 </tbody>
             </table>
         </div>
