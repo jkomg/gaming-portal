@@ -1,3 +1,4 @@
+# CI pipeline for gaming-portal
 name: CI
 
 on:
