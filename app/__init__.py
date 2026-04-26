@@ -132,11 +132,15 @@ def _seed_campaigns_if_empty():
             cover_image_url='/static/img/vecna.png',
             sort_order=3,
             _notion_databases=json.dumps({
-                'lore':       '3483a3e5-cab1-8102-b08c-db68df72deab',
-                'characters': '3483a3e5-cab1-8157-aa2d-e0f26e067598',
-                'factions':   '3483a3e5-cab1-81a2-a4bf-c05bdb1f35b6',
-                'locations':  '3483a3e5-cab1-81a9-96ad-f0a09824205e',
+                'characters': '3483a3e5-cab1-81a2-a4bf-c05bdb1f35b6',
+                'npcs':       '3483a3e5-cab1-8157-aa2d-e0f26e067598',
+                'chapters':   '3483a3e5-cab1-8102-b08c-db68df72deab',
             }),
+            _wiki_categories=json.dumps([
+                {'slug': 'characters', 'name': 'Characters', 'icon': 'bi-person-fill'},
+                {'slug': 'npcs',       'name': 'NPCs',       'icon': 'bi-person-lines-fill'},
+                {'slug': 'chapters',   'name': 'Chapters',   'icon': 'bi-book-fill'},
+            ]),
         ),
         Campaign(
             slug='keys',
@@ -147,11 +151,15 @@ def _seed_campaigns_if_empty():
             cover_image_url='/static/img/keys.png',
             sort_order=4,
             _notion_databases=json.dumps({
-                'lore':       '3483a3e5-cab1-81e8-a61d-c540cbe7cd26',
-                'characters': '3483a3e5-cab1-81ac-b84f-e62686a85b51',
-                'factions':   '3483a3e5-cab1-817a-a15a-ffc8223aa1bf',
-                'locations':  '3483a3e5-cab1-8164-b7b6-f6ada0060ee2',
+                'characters': '3483a3e5-cab1-817a-a15a-ffc8223aa1bf',
+                'npcs':       '3483a3e5-cab1-81ac-b84f-e62686a85b51',
+                'chapters':   '3483a3e5-cab1-81e8-a61d-c540cbe7cd26',
             }),
+            _wiki_categories=json.dumps([
+                {'slug': 'characters', 'name': 'Characters', 'icon': 'bi-person-fill'},
+                {'slug': 'npcs',       'name': 'NPCs',       'icon': 'bi-person-lines-fill'},
+                {'slug': 'chapters',   'name': 'Chapters',   'icon': 'bi-book-fill'},
+            ]),
         ),
     ]
     for c in campaigns:
