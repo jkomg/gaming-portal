@@ -6,6 +6,13 @@ on:
     types: [completed]
     branches: [main]
 
+env:
+  PROJECT: jkomg-gaming
+  REGION: us-central1
+  REGISTRY: us-central1-docker.pkg.dev
+  AR_REPO: gaming-repo
+  SERVICE: gaming-portal
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -16,31 +23,34 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: projects/947378962657/locations/global/workloadIdentityPools/github-actions/providers/github
+          service_account: github-actions-deploy@jkomg-gaming.iam.gserviceaccount.com
 
       - uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
 
       - name: Build and push image
         env:
-          IMAGE: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/gaming-portal/app:${{ github.sha }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.PROJECT }}/${{ env.AR_REPO }}/${{ env.SERVICE }}:${{ github.event.workflow_run.head_sha }}
         run: |
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
 
       - name: Deploy to Cloud Run
         env:
-          IMAGE: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/gaming-portal/app:${{ github.sha }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.PROJECT }}/${{ env.AR_REPO }}/${{ env.SERVICE }}:${{ github.event.workflow_run.head_sha }}
         run: |
-          gcloud run deploy gaming-portal \
+          gcloud run deploy ${{ env.SERVICE }} \
             --image "$IMAGE" \
-            --region ${{ secrets.GCP_REGION }} \
+            --project ${{ env.PROJECT }} \
+            --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
             --quiet
