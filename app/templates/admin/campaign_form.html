@@ -9,6 +9,8 @@
 
 <div class="row g-4">
 <div class="col-lg-8">
+
+{# ── Campaign settings form ──────────────────────────────────────────────── #}
 <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -86,7 +88,7 @@
     </div>
 
     <div class="card mb-4" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
-        <div class="card-header fw-semibold">Notion Sync</div>
+        <div class="card-header fw-semibold">Notion Sync Config</div>
         <div class="card-body row g-3">
             <div class="col-12">
                 <label class="form-label">Notion Token Env Var <span class="text-muted">(env var name, defaults to NOTION_TOKEN)</span></label>
@@ -99,80 +101,81 @@
                 <textarea class="form-control font-monospace" name="notion_databases_json" rows="5"
                           placeholder='{"locations":"abc123...","characters":"def456..."}'>{{ campaign._notion_databases if campaign else '' }}</textarea>
             </div>
-            {% if campaign and campaign.notion_databases %}
-            <div class="col-12">
-                <form method="post" action="{{ url_for('admin.notion_sync', slug=campaign.slug) }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-sm btn-outline-info"
-                            onclick="return confirm('Run Notion sync for {{ campaign.name }}?')">
-                        <i class="bi bi-arrow-repeat me-1"></i>Run Notion Sync Now
-                    </button>
-                </form>
-            </div>
-            {% endif %}
         </div>
     </div>
 
-    {% if campaign %}
-    <div class="card mb-4" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
-        <div class="card-header fw-semibold">Sync History</div>
-        <div class="card-body p-0">
-            <table class="table table-dark table-sm mb-0" style="font-size:0.8rem;">
-                <thead>
-                    <tr>
-                        <th>When</th>
-                        <th>Status</th>
-                        <th>Pages</th>
-                        <th>Detail</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for log in sync_logs %}
-                <tr>
-                    <td class="text-muted text-nowrap">{{ log.triggered_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td>
-                        {% if log.status == 'success' %}
-                        <span class="badge bg-success">success</span>
-                        {% elif log.status == 'partial' %}
-                        <span class="badge bg-warning text-dark">partial</span>
-                        {% else %}
-                        <span class="badge bg-danger">error</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ log.pages_synced }}</td>
-                    <td class="text-muted" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-                        title="{{ log.detail }}">{{ log.detail }}</td>
-                </tr>
-                {% endfor %}
-                {% if not sync_logs %}
-                <tr><td colspan="4" class="text-muted text-center py-3">No syncs run yet.</td></tr>
-                {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
-
-    <div class="d-flex gap-2 justify-content-between">
-        {% if campaign %}
-        <form method="post" action="{{ url_for('admin.campaign_delete', slug=campaign.slug) }}"
-              onsubmit="return confirm('Delete {{ campaign.name }} and ALL its wiki pages? This cannot be undone.')">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm btn-outline-danger">
-                <i class="bi bi-trash me-1"></i>Delete Campaign
-            </button>
-        </form>
-        {% else %}
-        <div></div>
-        {% endif %}
-        <div class="d-flex gap-2">
-            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">
-                {% if campaign %}Save Changes{% else %}Create Campaign{% endif %}
-            </button>
-        </div>
+    <div class="d-flex gap-2 justify-content-end mb-4">
+        <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+            {% if campaign %}Save Changes{% else %}Create Campaign{% endif %}
+        </button>
     </div>
 </form>
+
+{# ── Notion sync — separate form so it doesn't nest inside campaign form ── #}
+{% if campaign and campaign.notion_databases %}
+<form method="post" action="{{ url_for('admin.notion_sync', slug=campaign.slug) }}" class="mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-outline-info"
+            onclick="return confirm('Run Notion sync for {{ campaign.name }}?')">
+        <i class="bi bi-arrow-repeat me-1"></i>Run Notion Sync Now
+    </button>
+    <span class="text-muted small ms-2">Pulls all pages from configured Notion databases</span>
+</form>
+{% endif %}
+
+{# ── Sync history ─────────────────────────────────────────────────────────── #}
+{% if campaign %}
+<div class="card mb-4" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
+    <div class="card-header fw-semibold">Sync History</div>
+    <div class="card-body p-0">
+        <table class="table table-dark table-sm mb-0" style="font-size:0.8rem;">
+            <thead>
+                <tr>
+                    <th>When</th>
+                    <th>Status</th>
+                    <th>Pages</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for log in sync_logs %}
+            <tr>
+                <td class="text-muted text-nowrap">{{ log.triggered_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    {% if log.status == 'success' %}
+                    <span class="badge bg-success">success</span>
+                    {% elif log.status == 'partial' %}
+                    <span class="badge bg-warning text-dark">partial</span>
+                    {% else %}
+                    <span class="badge bg-danger">error</span>
+                    {% endif %}
+                </td>
+                <td>{{ log.pages_synced }}</td>
+                <td class="text-muted" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                    title="{{ log.detail }}">{{ log.detail }}</td>
+            </tr>
+            {% endfor %}
+            {% if not sync_logs %}
+            <tr><td colspan="4" class="text-muted text-center py-3">No syncs run yet.</td></tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ── Delete — separate form ───────────────────────────────────────────────── #}
+{% if campaign %}
+<form method="post" action="{{ url_for('admin.campaign_delete', slug=campaign.slug) }}"
+      onsubmit="return confirm('Delete {{ campaign.name }} and ALL its wiki pages? This cannot be undone.')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-sm btn-outline-danger">
+        <i class="bi bi-trash me-1"></i>Delete Campaign
+    </button>
+</form>
+{% endif %}
+
 </div>
 
 {% if campaign and campaign.wiki_enabled and not campaign.wiki_url %}
