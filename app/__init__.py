@@ -16,21 +16,32 @@ def create_app() -> Flask:
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
 
     _db_url = os.environ.get('DATABASE_URL', '')
+    _turso_connect_url = None
+    _turso_token = None
+
     if not _db_url:
         # Local dev: SQLite
         _data_dir = os.path.abspath(os.path.join(app.root_path, '..', 'data'))
         os.makedirs(_data_dir, exist_ok=True)
         _db_url = f'sqlite:///{_data_dir}/db.sqlite'
     elif _db_url.startswith('libsql://'):
-        # Turso: rewrite to SQLAlchemy-compatible URL with auth token
-        token = os.environ.get('TURSO_AUTH_TOKEN', '')
-        _db_url = _db_url.replace('libsql://', 'sqlite+libsql://', 1)
-        if token:
-            host = _db_url.replace('sqlite+libsql://', '')
-            _db_url = f'sqlite+libsql://{host}?authToken={token}&secure=true'
+        # Turso: use HTTP adapter via creator; SQLAlchemy URI is a dummy
+        _turso_token = os.environ.get('TURSO_AUTH_TOKEN', '')
+        _turso_connect_url = 'https://' + _db_url[len('libsql://'):]
+        _db_url = 'sqlite://'
 
     app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    if _turso_connect_url:
+        from .turso_http import connect as _turso_connect
+        from sqlalchemy.pool import NullPool
+        _t_url, _t_token = _turso_connect_url, _turso_token
+
+        def _turso_creator():
+            return _turso_connect(_t_url, auth_token=_t_token)
+
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'creator': _turso_creator, 'poolclass': NullPool}
     app.config['WTF_CSRF_TIME_LIMIT'] = None
 
     app.config['DISCORD_CLIENT_ID'] = os.environ.get('DISCORD_CLIENT_ID', '')

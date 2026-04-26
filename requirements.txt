@@ -6,4 +6,3 @@ gunicorn==21.2.0
 requests==2.32.3
 markdown==3.7
 notion-client==2.2.1
-libsql-experimental==0.0.79
