@@ -10,9 +10,12 @@ from __future__ import annotations
 import json
 import os
 import re
+import ssl
 import sys
 import urllib.error
 import urllib.request
+
+_ssl_ctx = ssl._create_unverified_context()
 
 MD_PATH = os.path.expanduser('~/Downloads/Vecna_ Eve of Ruin.md')
 
@@ -47,7 +50,7 @@ def sql(query, params=None):
     body = json.dumps({'requests': [{'type': 'execute', 'stmt': stmt}, {'type': 'close'}]})
     req  = urllib.request.Request(_endpoint, data=body.encode(), headers=_headers, method='POST')
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=30, context=_ssl_ctx) as resp:
             data = json.loads(resp.read())
     except urllib.error.HTTPError as exc:
         raise RuntimeError(f'Turso HTTP {exc.code}: {exc.read().decode()}') from exc
