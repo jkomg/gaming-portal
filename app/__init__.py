@@ -14,11 +14,21 @@ def create_app() -> Flask:
 
     # Config
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
+
     _db_url = os.environ.get('DATABASE_URL', '')
-    if not _db_url or _db_url == 'sqlite:///data/db.sqlite':
+    if not _db_url:
+        # Local dev: SQLite
         _data_dir = os.path.abspath(os.path.join(app.root_path, '..', 'data'))
         os.makedirs(_data_dir, exist_ok=True)
         _db_url = f'sqlite:///{_data_dir}/db.sqlite'
+    elif _db_url.startswith('libsql://'):
+        # Turso: rewrite to SQLAlchemy-compatible URL with auth token
+        token = os.environ.get('TURSO_AUTH_TOKEN', '')
+        _db_url = _db_url.replace('libsql://', 'sqlite+libsql://', 1)
+        if token:
+            host = _db_url.replace('sqlite+libsql://', '')
+            _db_url = f'sqlite+libsql://{host}?authToken={token}&secure=true'
+
     app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['WTF_CSRF_TIME_LIMIT'] = None
@@ -63,7 +73,7 @@ def create_app() -> Flask:
         try:
             db.create_all()
         except Exception:
-            pass  # already exists (multi-worker race) — safe to ignore
+            pass  # already exists — safe to ignore
         _seed_campaigns_if_empty()
 
     return app
@@ -72,8 +82,10 @@ def create_app() -> Flask:
 def _seed_campaigns_if_empty():
     """Seed the four known campaigns on first boot so the homepage isn't blank."""
     from .db import Campaign
+    import json
     if Campaign.query.count() > 0:
         return
+
     campaigns = [
         Campaign(
             slug='mcbn',
@@ -93,6 +105,12 @@ def _seed_campaigns_if_empty():
             description='A mysterious Precursor signal bleeds through the Procyon Sector. Multiple factions want it. Your crew just wanted a simple job.',
             cover_image_url='/static/img/gotw.png',
             sort_order=2,
+            _notion_databases=json.dumps({
+                'characters': 'c2d7cdd8-5938-4ee2-9986-02580d84f2ac',
+                'locations':  '9007ee36-f931-4298-9986-b82c7b6e2a53',
+                'factions':   '63c814ca-8ad1-437b-99f0-f10a44819820',
+                'lore':       '2b44db63-34bb-4800-b7fa-7c7c5352d9af',
+            }),
         ),
         Campaign(
             slug='vecna',
@@ -102,6 +120,12 @@ def _seed_campaigns_if_empty():
             description='The lich-god Vecna prepares the Ritual of Remaking. Only one crew can stop him before the multiverse is unmade.',
             cover_image_url='/static/img/vecna.png',
             sort_order=3,
+            _notion_databases=json.dumps({
+                'lore':       '3483a3e5-cab1-8102-b08c-db68df72deab',
+                'characters': '3483a3e5-cab1-8157-aa2d-e0f26e067598',
+                'factions':   '3483a3e5-cab1-81a2-a4bf-c05bdb1f35b6',
+                'locations':  '3483a3e5-cab1-81a9-96ad-f0a09824205e',
+            }),
         ),
         Campaign(
             slug='keys',
@@ -111,6 +135,12 @@ def _seed_campaigns_if_empty():
             description='Thirteen daring heists, each a self-contained caper. The Golden Vault calls — will you answer?',
             cover_image_url='/static/img/keys.png',
             sort_order=4,
+            _notion_databases=json.dumps({
+                'lore':       '3483a3e5-cab1-81e8-a61d-c540cbe7cd26',
+                'characters': '3483a3e5-cab1-81ac-b84f-e62686a85b51',
+                'factions':   '3483a3e5-cab1-817a-a15a-ffc8223aa1bf',
+                'locations':  '3483a3e5-cab1-8164-b7b6-f6ada0060ee2',
+            }),
         ),
     ]
     for c in campaigns:
