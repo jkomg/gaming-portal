@@ -4,10 +4,10 @@ import json
 import os
 from datetime import datetime, timezone
 from flask import (
-    Blueprint, render_template, request, redirect, url_for, flash, current_app,
+    Blueprint, render_template, request, redirect, url_for, flash,
 )
 from app.auth import require_staff, get_staff_user
-from app.db import db, Campaign, WikiPage, CAMPAIGN_STATUSES, CAMPAIGN_STATUS_LABELS, DEFAULT_WIKI_CATEGORIES
+from app.db import db, Campaign, WikiPage, CAMPAIGN_STATUSES, CAMPAIGN_STATUS_LABELS
 
 bp = Blueprint('admin', __name__)
 
@@ -177,7 +177,7 @@ def _sync_notion_database(token: str, database_id: str, campaign_id: int,
 def _upsert_notion_page(notion, page: dict, campaign_id: int,
                          category: str, updated_by: str) -> None:
     """Convert a Notion page to a WikiPage row."""
-    from app.db import WikiPage, WIKI_STATUSES
+    from app.db import WikiPage
     import re
 
     notion_id   = page['id']

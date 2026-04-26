@@ -71,7 +71,6 @@ def _seed_campaigns_if_empty():
     from .db import Campaign
     if Campaign.query.count() > 0:
         return
-    import json
     campaigns = [
         Campaign(
             slug='mcbn',

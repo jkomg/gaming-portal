@@ -1,6 +1,6 @@
 """Public-facing portal — hub homepage and campaign landing pages."""
-from flask import Blueprint, render_template, abort
-from app.db import db, Campaign, CAMPAIGN_STATUS_LABELS
+from flask import Blueprint, render_template
+from app.db import Campaign, CAMPAIGN_STATUS_LABELS
 
 bp = Blueprint('portal', __name__)
 
