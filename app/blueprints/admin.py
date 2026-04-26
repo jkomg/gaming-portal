@@ -48,6 +48,21 @@ def fix_category_mappings():
                 {'slug': 'chapters',   'name': 'Chapters',   'icon': 'bi-book-fill'},
             ],
         },
+        'gotw': {
+            'notion_databases': {
+                'characters': 'c2d7cdd8-5938-4ee2-9986-02580d84f2ac',
+                'locations':  '9007ee36-f931-4298-9986-b82c7b6e2a53',
+                'factions':   '63c814ca-8ad1-437b-99f0-f10a44819820',
+                'jobs':       '2b44db63-34bb-4800-b7fa-7c7c5352d9af',
+            },
+            'wiki_categories': [
+                {'slug': 'characters', 'name': 'Characters', 'icon': 'bi-person-fill'},
+                {'slug': 'locations',  'name': 'Locations',  'icon': 'bi-geo-alt-fill'},
+                {'slug': 'factions',   'name': 'Factions',   'icon': 'bi-shield-fill'},
+                {'slug': 'jobs',       'name': 'Jobs',       'icon': 'bi-briefcase-fill'},
+                {'slug': 'lore',       'name': 'Lore',       'icon': 'bi-book-fill'},
+            ],
+        },
     }
     updated = []
     for slug, data in fixes.items():
