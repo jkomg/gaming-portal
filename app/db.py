@@ -94,6 +94,17 @@ class Campaign(db.Model):
         return ''
 
 
+class SyncLog(db.Model):
+    __tablename__ = 'sync_logs'
+    id           = db.Column(db.Integer, primary_key=True)
+    campaign_id  = db.Column(db.Integer, db.ForeignKey('campaigns.id'), nullable=False, index=True)
+    triggered_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status       = db.Column(db.String(20), default='success')  # success / error / partial
+    pages_synced = db.Column(db.Integer, default=0)
+    detail       = db.Column(db.Text, default='')
+    triggered_by = db.Column(db.String(100), default='')
+
+
 class WikiPage(db.Model):
     __tablename__ = 'wiki_pages'
     __table_args__ = (

@@ -7,7 +7,7 @@ from flask import (
     Blueprint, render_template, request, redirect, url_for, flash,
 )
 from app.auth import require_staff, get_staff_user
-from app.db import db, Campaign, WikiPage, CAMPAIGN_STATUSES, CAMPAIGN_STATUS_LABELS
+from app.db import db, Campaign, WikiPage, SyncLog, CAMPAIGN_STATUSES, CAMPAIGN_STATUS_LABELS
 
 bp = Blueprint('admin', __name__)
 
@@ -55,7 +55,8 @@ def campaign_new():
         flash(f'Campaign "{name}" created.', 'success')
         return redirect(url_for('admin.campaign_edit', slug=slug))
     return render_template('admin/campaign_form.html', campaign=None,
-                           statuses=CAMPAIGN_STATUSES, status_labels=CAMPAIGN_STATUS_LABELS)
+                           statuses=CAMPAIGN_STATUSES, status_labels=CAMPAIGN_STATUS_LABELS,
+                           sync_logs=[])
 
 
 @bp.route('/campaigns/<slug>/edit', methods=['GET', 'POST'])
@@ -89,8 +90,11 @@ def campaign_edit(slug):
         db.session.commit()
         flash(f'Campaign "{c.name}" saved.', 'success')
         return redirect(url_for('admin.campaign_edit', slug=slug))
+    sync_logs = (SyncLog.query.filter_by(campaign_id=c.id)
+                 .order_by(SyncLog.triggered_at.desc()).limit(15).all())
     return render_template('admin/campaign_form.html', campaign=c,
-                           statuses=CAMPAIGN_STATUSES, status_labels=CAMPAIGN_STATUS_LABELS)
+                           statuses=CAMPAIGN_STATUSES, status_labels=CAMPAIGN_STATUS_LABELS,
+                           sync_logs=sync_logs)
 
 
 @bp.route('/campaigns/<slug>/status', methods=['POST'])
@@ -143,9 +147,22 @@ def notion_sync(slug):
             errors.append(f'{category_slug}: {exc}')
 
     if errors:
-        flash(f'Sync completed with errors: {"; ".join(errors)}', 'warning')
+        status = 'partial' if synced else 'error'
+        detail = '; '.join(errors)
+        flash(f'Sync completed with errors: {detail}', 'warning')
     else:
+        status = 'success'
+        detail = f'Synced {synced} pages across {len(notion_dbs)} databases.'
         flash(f'Synced {synced} pages from Notion.', 'success')
+
+    db.session.add(SyncLog(
+        campaign_id=c.id,
+        status=status,
+        pages_synced=synced,
+        detail=detail,
+        triggered_by=get_staff_user(),
+    ))
+    db.session.commit()
     return redirect(url_for('admin.campaign_edit', slug=slug))
 
 
