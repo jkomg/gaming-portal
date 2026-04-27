@@ -83,7 +83,7 @@
 
     {% if active_campaigns %}
     <h2 class="section-label mb-4">Active Campaigns</h2>
-    <div class="row g-4 mb-5">
+    <div class="row g-4 mb-5 justify-content-center">
         {% for c in active_campaigns %}
         {{ _render_card(c) }}
         {% endfor %}
@@ -92,7 +92,7 @@
 
     {% if other_campaigns %}
     <h2 class="section-label mb-4 mt-2">Other Campaigns</h2>
-    <div class="row g-4">
+    <div class="row g-4 justify-content-center">
         {% for c in other_campaigns %}
         {{ _render_card(c) }}
         {% endfor %}

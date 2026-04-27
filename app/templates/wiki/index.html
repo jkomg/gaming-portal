@@ -26,31 +26,4 @@
         {% endfor %}
     </div>
 </section>
-
-{% if recent %}
-<hr class="wiki-sep">
-<section class="mb-4">
-    <h2 class="wiki-section-heading mb-4">Recently Updated</h2>
-    <div class="row g-3">
-        {% for p in recent %}
-        <div class="col-md-6 col-lg-4">
-            <a href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=p.slug) }}"
-               class="wiki-page-card text-decoration-none">
-                {% if p.cover_image_url %}
-                <div class="wiki-card-cover" style="background-image:url('{{ p.cover_image_url }}');"></div>
-                {% endif %}
-                <div class="wiki-card-body">
-                    <h5>{{ p.title }}</h5>
-                    {% if p.summary %}<div class="wiki-card-summary">{{ p.summary }}</div>{% endif %}
-                    <div class="meta">
-                        <i class="bi bi-clock me-1"></i>
-                        {{ p.updated_at.strftime('%b %d, %Y') if p.updated_at else '' }}
-                    </div>
-                </div>
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
 {% endblock %}
