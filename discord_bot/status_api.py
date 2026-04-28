@@ -16,8 +16,9 @@ from aiohttp import web
 # Rolling log buffer — populated by LogBufferHandler below
 _log_buffer: collections.deque[str] = collections.deque(maxlen=300)
 
-# Set by start() to a reference of bot.py's _active dict
+# Set by start() to references of bot.py's live dicts
 _active: dict = {}
+_processing: dict = {}
 
 
 # ── Log capture ───────────────────────────────────────────────────────────────
@@ -33,10 +34,10 @@ class LogBufferHandler(logging.Handler):
 
 async def _handle_health(request: web.Request) -> web.Response:
     recording = bool(_active)
-    payload: dict = {'online': True, 'recording': recording}
+    processing = dict(_processing)  # snapshot
+    payload: dict = {'online': True, 'recording': recording, 'processing': processing}
 
     if recording:
-        # _active is keyed by guild_id; grab the first (usually only) session
         state = next(iter(_active.values()))
         sink = state['sink']
         elapsed_ms = sink.session_duration_ms()
@@ -72,10 +73,11 @@ async def _handle_sessions(request: web.Request) -> web.Response:
 
 # ── Server lifecycle ──────────────────────────────────────────────────────────
 
-async def start(active_sessions: dict, port: int = 8765) -> None:
-    """Start the HTTP server. Pass bot.py's _active dict directly."""
-    global _active
+async def start(active_sessions: dict, processing_state: dict, port: int = 8765) -> None:
+    """Start the HTTP server. Pass bot.py's _active and _processing dicts directly."""
+    global _active, _processing
     _active = active_sessions
+    _processing = processing_state  # same object — mutations in bot.py are visible here
 
     app = web.Application()
     app.router.add_get('/health', _handle_health)

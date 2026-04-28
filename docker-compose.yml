@@ -5,6 +5,7 @@ services:
     env_file: ./discord_bot/.env
     volumes:
       - whisper_cache:/root/.cache/huggingface
+      - ./sessions:/app/sessions   # audio persists across restarts
     ports:
       - "8765:8765"      # status API — only exposed locally
     restart: unless-stopped

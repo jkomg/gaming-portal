@@ -112,7 +112,35 @@
       return;
     }
 
-    if (res.recording) {
+    const p = res.processing || {};
+
+    if (p.phase) {
+      const phases = {transcribing: 1, summarizing: 2, posting: 3};
+      const pct = p.phase === 'transcribing' && p.total
+        ? Math.round((p.current / p.total) * 70)   // transcribing = 0–70%
+        : p.phase === 'summarizing' ? 80
+        : p.phase === 'posting' ? 95
+        : 100;
+      const phaseLabel = {
+        transcribing: 'Transcribing',
+        summarizing:  'Summarizing',
+        posting:      'Posting to wiki',
+      }[p.phase] || p.phase;
+
+      el.innerHTML = `
+        <div class="mb-3">
+          <span class="status-dot dot-record"></span>
+          <span class="text-warning fw-semibold">Processing session</span>
+        </div>
+        <div class="small text-secondary mb-1">${phaseLabel}</div>
+        <div class="small text-muted mb-2">${p.detail || ''}</div>
+        <div class="progress mb-1" style="height:8px">
+          <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+               style="width:${pct}%"></div>
+        </div>
+        <div class="small text-secondary text-end">${pct}%</div>`;
+
+    } else if (res.recording) {
       el.innerHTML = `
         <div class="mb-3">
           <span class="status-dot dot-record"></span>

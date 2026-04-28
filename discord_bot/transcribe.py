@@ -76,13 +76,16 @@ def transcribe_wavs(
     chunks: dict[int, list[tuple[int, bytes]]],
     user_names: dict[int, str],
     session_duration_ms: int,  # kept for API compatibility, unused here
+    progress_callback=None,  # optional: called with (completed_count, speaker_name)
 ) -> list[tuple[float, str, str]]:
     """Transcribe all users; return sorted [(session_time_s, speaker, text)]."""
     model = _get_model()
     lines: list[tuple[float, str, str]] = []
 
-    for uid, user_chunks in chunks.items():
+    for i, (uid, user_chunks) in enumerate(chunks.items()):
         name = user_names.get(uid, f'User{uid}')
+        if progress_callback:
+            progress_callback(i, name)
         log.info('Transcribing %s (%d speaking chunks)...', name, len(user_chunks))
 
         # Group consecutive chunks into runs separated by silence > 2 s.

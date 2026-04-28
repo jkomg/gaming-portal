@@ -76,6 +76,9 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # guild_id -> recording state dict
 _active: dict[int, dict] = {}
 
+# Current post-processing progress — mutated in-place so status_api sees live updates
+_processing: dict = {}
+
 # ── Slash commands ────────────────────────────────────────────────────────────
 
 record_group = app_commands.Group(name='record', description='Session recording')
@@ -107,7 +110,9 @@ async def record_start(interaction: discord.Interaction, campaign: str) -> None:
         return
 
     from audio_sink import SessionSink
-    sink = SessionSink()
+    started_at = datetime.utcnow()
+    session_id = f'{started_at.strftime("%Y%m%d_%H%M")}_{campaign}'
+    sink = SessionSink(session_id)
     channel = interaction.user.voice.channel
     vc: voice_recv.VoiceRecvClient = await channel.connect(cls=voice_recv.VoiceRecvClient)
     vc.listen(sink)
@@ -117,7 +122,8 @@ async def record_start(interaction: discord.Interaction, campaign: str) -> None:
         'sink': sink,
         'campaign': campaign,
         'campaign_id': campaign_id,
-        'started_at': datetime.utcnow(),
+        'started_at': started_at,
+        'session_id': session_id,
         'notify_channel_id': interaction.channel_id,
     }
     log.info('Recording started: campaign=%s channel=%s', campaign, channel.name)
@@ -143,6 +149,8 @@ async def record_stop(interaction: discord.Interaction) -> None:
 
     vc.stop_listening()
     await vc.disconnect()
+    sink.save_meta(state['campaign'], state['campaign_id'],
+                   state['started_at'].isoformat())
     sink.cleanup()
 
     elapsed_ms = sink.session_duration_ms()
@@ -206,26 +214,42 @@ async def _campaign_autocomplete(
 # ── Processing pipeline ───────────────────────────────────────────────────────
 
 async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None:
+    global _processing
     channel = bot.get_channel(channel_id)
     try:
-        chunks = sink.chunks
-        user_names = sink.user_names
+        from audio_sink import load_session
+        chunks, user_names = load_session(sink.session_dir)
 
         if not chunks:
             if channel:
                 await channel.send('No audio captured — session notes skipped.')
             return
 
-        log.info('Transcribing %d users...', len(chunks))
+        total_users = len(chunks)
+
+        def set_progress(**kwargs) -> None:
+            _processing.clear()
+            _processing.update(kwargs)
+
+        def on_transcription_progress(completed: int, name: str) -> None:
+            set_progress(phase='transcribing', detail=f'Transcribing {name}…',
+                         current=completed, total=total_users)
+
+        set_progress(phase='transcribing', detail='Starting transcription…',
+                     current=0, total=total_users)
+        log.info('Transcribing %d users...', total_users)
         transcript_lines = await asyncio.to_thread(
-            _run_transcription, chunks, user_names, duration_ms
+            _run_transcription, chunks, user_names, duration_ms, on_transcription_progress
         )
 
         if not transcript_lines:
+            _processing.clear()
             if channel:
                 await channel.send('Transcription returned no text — notes not posted.')
             return
 
+        set_progress(phase='summarizing', detail='Claude is reading the transcript…',
+                     current=1, total=1)
         log.info('Summarizing %d transcript lines...', len(transcript_lines))
         summary_md = await asyncio.to_thread(
             _run_summarize,
@@ -234,6 +258,7 @@ async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None
             state['started_at'].strftime('%B %-d, %Y'),
         )
 
+        set_progress(phase='posting', detail='Writing session to wiki…', current=1, total=1)
         log.info('Posting session to wiki...')
         wiki_url = await asyncio.to_thread(
             _run_post,
@@ -244,19 +269,24 @@ async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None
             transcript_lines,
         )
 
+        _processing.clear()
         log.info('Session posted: %s', wiki_url)
+        # Clean up raw audio now that it's safely in the wiki
+        import shutil
+        shutil.rmtree(sink.session_dir, ignore_errors=True)
         if channel:
             await channel.send(f'Session notes posted: {wiki_url}')
 
     except Exception as exc:
+        _processing.clear()
         log.exception('Error processing session')
         if channel:
             await channel.send(f'Error generating session notes: {exc}')
 
 
-def _run_transcription(chunks, user_names, duration_ms):
+def _run_transcription(chunks, user_names, duration_ms, progress_callback=None):
     from transcribe import transcribe_wavs
-    return transcribe_wavs(chunks, user_names, duration_ms)
+    return transcribe_wavs(chunks, user_names, duration_ms, progress_callback)
 
 
 def _run_summarize(transcript_lines, campaign, date_str):
@@ -281,7 +311,7 @@ async def on_ready() -> None:
     if not _status_started:
         _status_started = True
         from status_api import start
-        asyncio.create_task(start(_active, port=STATUS_PORT))
+        asyncio.create_task(start(_active, _processing, port=STATUS_PORT))
 
     for guild_id in GUILD_IDS:
         guild = discord.Object(id=guild_id)
