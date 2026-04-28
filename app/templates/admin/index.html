@@ -5,13 +5,6 @@
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0">Campaigns</h1>
     <div class="d-flex gap-2">
-        <form method="post" action="{{ url_for('admin.fix_category_mappings') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm btn-outline-warning"
-                    onclick="return confirm('Apply correct Keys/Vecna category mappings?')">
-                <i class="bi bi-wrench me-1"></i>Fix Keys/Vecna Categories
-            </button>
-        </form>
         <a href="{{ url_for('admin.campaign_new') }}" class="btn btn-sm btn-primary">
             <i class="bi bi-plus-circle me-1"></i>New Campaign
         </a>
