@@ -1,0 +1,22 @@
+# Discord
+discord.py[voice]>=2.3.0
+discord-ext-voice-recv>=0.5.0
+
+# Local transcription — no API key, runs on-device
+faster-whisper>=1.0.0
+numpy>=1.26.0
+
+# Audio conversion
+pydub>=0.25.1
+
+# AI summarization
+anthropic>=0.28.0
+
+# Status API (runs alongside the bot)
+aiohttp>=3.9.0
+
+# DB (Turso HTTP)
+httpx>=0.27.0
+
+# Env
+python-dotenv>=1.0.0

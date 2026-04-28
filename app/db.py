@@ -15,14 +15,15 @@ CAMPAIGN_STATUS_LABELS = {
 }
 
 # Wiki page status values
-WIKI_STATUSES = ('draft', 'active', 'upcoming', 'archived')
+WIKI_STATUSES = ('draft', 'active', 'upcoming', 'completed', 'archived')
 WIKI_STATUS_LABELS = {
-    'draft':    'Draft',
-    'active':   'Active',
-    'upcoming': 'Upcoming',
-    'archived': 'Archived',
+    'draft':     'Draft',
+    'active':    'Active',
+    'upcoming':  'Upcoming',
+    'completed': 'Completed',
+    'archived':  'Archived',
 }
-WIKI_PUBLIC_STATUSES = ('active', 'upcoming')
+WIKI_PUBLIC_STATUSES = ('active', 'upcoming', 'completed')
 
 # Default wiki categories — campaigns can override
 DEFAULT_WIKI_CATEGORIES = [

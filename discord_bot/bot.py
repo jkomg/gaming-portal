@@ -1,0 +1,298 @@
+"""Lasombra — TTRPG session recording bot.
+
+Slash commands:
+  /record start campaign:<slug>  — join voice and start recording
+  /record stop                   — stop, transcribe, summarize, post to wiki
+  /record status                 — show elapsed time and captured speakers
+  /record campaigns              — list available campaign slugs
+"""
+from __future__ import annotations
+
+import asyncio
+import logging
+import os
+from datetime import datetime
+
+import discord
+from discord import app_commands
+from discord.ext import commands, voice_recv
+from dotenv import load_dotenv
+
+from status_api import LogBufferHandler
+
+# ── Patch discord-ext-voice-recv to skip corrupted Opus packets ───────────────
+# The alpha library crashes its router thread on bad packets; we make it return
+# None instead so the router loop continues normally.
+def _patch_voice_recv() -> None:
+    try:
+        from discord.ext.voice_recv import opus as _vr_opus
+        import discord.opus as _opus
+
+        _orig = _vr_opus.PacketDecoder.pop_data
+
+        def _safe_pop_data(self):
+            try:
+                return _orig(self)
+            except _opus.OpusError:
+                return None
+
+        _vr_opus.PacketDecoder.pop_data = _safe_pop_data
+    except Exception:
+        pass  # if the internals change, don't block startup
+
+_patch_voice_recv()
+
+load_dotenv()
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+
+_fmt = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s: %(message)s')
+_stream = logging.StreamHandler()
+_stream.setFormatter(_fmt)
+_buffer = LogBufferHandler()
+_buffer.setFormatter(_fmt)
+
+logging.basicConfig(level=logging.INFO, handlers=[_stream, _buffer])
+log = logging.getLogger('lasombra')
+
+# ── Config ────────────────────────────────────────────────────────────────────
+
+DISCORD_TOKEN = os.environ['DISCORD_BOT_TOKEN']
+GUILD_IDS = [
+    int(x.strip())
+    for x in os.environ.get('DISCORD_GUILD_IDS', '').split(',')
+    if x.strip()
+]
+STATUS_PORT = int(os.environ.get('STATUS_PORT', 8765))
+
+# ── Bot ───────────────────────────────────────────────────────────────────────
+
+intents = discord.Intents.default()
+intents.voice_states = True
+intents.guilds = True
+
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+# guild_id -> recording state dict
+_active: dict[int, dict] = {}
+
+# ── Slash commands ────────────────────────────────────────────────────────────
+
+record_group = app_commands.Group(name='record', description='Session recording')
+bot.tree.add_command(record_group)
+
+
+@record_group.command(name='start', description='Start recording the current voice channel')
+@app_commands.describe(campaign='Campaign slug (e.g. vecna, gotw, keys)')
+async def record_start(interaction: discord.Interaction, campaign: str) -> None:
+    await interaction.response.defer(ephemeral=True)
+
+    gid = interaction.guild_id
+    if gid in _active:
+        await interaction.followup.send('Already recording — use `/record stop` first.', ephemeral=True)
+        return
+
+    if not (interaction.user.voice and interaction.user.voice.channel):
+        await interaction.followup.send('You need to be in a voice channel first.', ephemeral=True)
+        return
+
+    campaign = campaign.lower().strip()
+    from wiki_poster import get_campaign_id
+    campaign_id = get_campaign_id(campaign)
+    if campaign_id is None:
+        await interaction.followup.send(
+            f'Campaign `{campaign}` not found. Use `/record campaigns` to see valid slugs.',
+            ephemeral=True,
+        )
+        return
+
+    from audio_sink import SessionSink
+    sink = SessionSink()
+    channel = interaction.user.voice.channel
+    vc: voice_recv.VoiceRecvClient = await channel.connect(cls=voice_recv.VoiceRecvClient)
+    vc.listen(sink)
+
+    _active[gid] = {
+        'vc': vc,
+        'sink': sink,
+        'campaign': campaign,
+        'campaign_id': campaign_id,
+        'started_at': datetime.utcnow(),
+        'notify_channel_id': interaction.channel_id,
+    }
+    log.info('Recording started: campaign=%s channel=%s', campaign, channel.name)
+
+    await interaction.followup.send(
+        f'Recording **{channel.name}** for **{campaign}**.\nUse `/record stop` when done.',
+        ephemeral=True,
+    )
+
+
+@record_group.command(name='stop', description='Stop recording and post notes to the wiki')
+async def record_stop(interaction: discord.Interaction) -> None:
+    await interaction.response.defer(ephemeral=True)
+
+    gid = interaction.guild_id
+    if gid not in _active:
+        await interaction.followup.send('No active recording.', ephemeral=True)
+        return
+
+    state = _active.pop(gid)
+    vc: voice_recv.VoiceRecvClient = state['vc']
+    sink = state['sink']
+
+    vc.stop_listening()
+    await vc.disconnect()
+    sink.cleanup()
+
+    elapsed_ms = sink.session_duration_ms()
+    h, rem = divmod(elapsed_ms // 1000, 3600)
+    m, s = divmod(rem, 60)
+    speakers = list(sink.user_names.values())
+    log.info('Recording stopped: %02d:%02d:%02d, speakers=%s', h, m, s, speakers)
+
+    await interaction.followup.send(
+        f'Recording stopped ({h:02d}:{m:02d}:{s:02d}, '
+        f'speakers: {", ".join(speakers) or "none"}).\n'
+        'Transcribing — I\'ll post here when notes are ready.',
+        ephemeral=False,
+    )
+
+    asyncio.create_task(_process(state, sink, elapsed_ms, interaction.channel_id))
+
+
+@record_group.command(name='status', description='Show current recording status')
+async def record_status(interaction: discord.Interaction) -> None:
+    gid = interaction.guild_id
+    if gid not in _active:
+        await interaction.response.send_message('No active recording.', ephemeral=True)
+        return
+
+    state = _active[gid]
+    sink = state['sink']
+    elapsed_ms = sink.session_duration_ms()
+    h, rem = divmod(elapsed_ms // 1000, 3600)
+    m, s = divmod(rem, 60)
+    speakers = list(sink.user_names.values())
+
+    await interaction.response.send_message(
+        f'Recording **{state["campaign"]}** — {h:02d}:{m:02d}:{s:02d} elapsed\n'
+        f'Speakers: {", ".join(speakers) or "none yet"}',
+        ephemeral=True,
+    )
+
+
+@record_group.command(name='campaigns', description='List available campaign slugs')
+async def record_campaigns(interaction: discord.Interaction) -> None:
+    from wiki_poster import get_campaigns
+    camps = get_campaigns()
+    lines = [f'`{c["slug"]}` — {c["name"]}' for c in camps]
+    await interaction.response.send_message('\n'.join(lines) or 'No campaigns found.', ephemeral=True)
+
+
+@record_start.autocomplete('campaign')
+async def _campaign_autocomplete(
+    interaction: discord.Interaction, current: str
+) -> list[app_commands.Choice[str]]:
+    from wiki_poster import get_campaigns
+    camps = get_campaigns()
+    return [
+        app_commands.Choice(name=c['name'], value=c['slug'])
+        for c in camps
+        if current.lower() in c['slug'] or current.lower() in c['name'].lower()
+    ][:25]
+
+
+# ── Processing pipeline ───────────────────────────────────────────────────────
+
+async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None:
+    channel = bot.get_channel(channel_id)
+    try:
+        chunks = sink.chunks
+        user_names = sink.user_names
+
+        if not chunks:
+            if channel:
+                await channel.send('No audio captured — session notes skipped.')
+            return
+
+        log.info('Transcribing %d users...', len(chunks))
+        transcript_lines = await asyncio.to_thread(
+            _run_transcription, chunks, user_names, duration_ms
+        )
+
+        if not transcript_lines:
+            if channel:
+                await channel.send('Transcription returned no text — notes not posted.')
+            return
+
+        log.info('Summarizing %d transcript lines...', len(transcript_lines))
+        summary_md = await asyncio.to_thread(
+            _run_summarize,
+            transcript_lines,
+            state['campaign'],
+            state['started_at'].strftime('%B %-d, %Y'),
+        )
+
+        log.info('Posting session to wiki...')
+        wiki_url = await asyncio.to_thread(
+            _run_post,
+            state['campaign_id'],
+            state['campaign'],
+            state['started_at'],
+            summary_md,
+            transcript_lines,
+        )
+
+        log.info('Session posted: %s', wiki_url)
+        if channel:
+            await channel.send(f'Session notes posted: {wiki_url}')
+
+    except Exception as exc:
+        log.exception('Error processing session')
+        if channel:
+            await channel.send(f'Error generating session notes: {exc}')
+
+
+def _run_transcription(chunks, user_names, duration_ms):
+    from transcribe import transcribe_wavs
+    return transcribe_wavs(chunks, user_names, duration_ms)
+
+
+def _run_summarize(transcript_lines, campaign, date_str):
+    from summarize import summarize_transcript
+    return summarize_transcript(transcript_lines, campaign, date_str)
+
+
+def _run_post(campaign_id, campaign, started_at, summary_md, transcript_lines):
+    from wiki_poster import post_session
+    return post_session(campaign_id, campaign, started_at, summary_md, transcript_lines)
+
+
+# ── Events ────────────────────────────────────────────────────────────────────
+
+_status_started = False
+
+@bot.event
+async def on_ready() -> None:
+    global _status_started
+    log.info('Lasombra online as %s (id=%s)', bot.user, bot.user.id)
+
+    if not _status_started:
+        _status_started = True
+        from status_api import start
+        asyncio.create_task(start(_active, port=STATUS_PORT))
+
+    for guild_id in GUILD_IDS:
+        guild = discord.Object(id=guild_id)
+        bot.tree.copy_global_to(guild=guild)
+        await bot.tree.sync(guild=guild)
+        log.info('Commands synced to guild %d', guild_id)
+
+    if not GUILD_IDS:
+        await bot.tree.sync()
+        log.info('Commands synced globally')
+
+
+if __name__ == '__main__':
+    bot.run(DISCORD_TOKEN)

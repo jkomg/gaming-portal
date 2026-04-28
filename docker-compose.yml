@@ -1,0 +1,23 @@
+services:
+  lasombra:
+    build:
+      context: ./discord_bot
+    env_file: ./discord_bot/.env
+    volumes:
+      - whisper_cache:/root/.cache/huggingface
+    ports:
+      - "8765:8765"      # status API — only exposed locally
+    restart: unless-stopped
+
+  lasombra-ui:
+    build:
+      context: ./bot_ui
+    env_file: ./bot_ui/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - lasombra
+    restart: unless-stopped
+
+volumes:
+  whisper_cache:

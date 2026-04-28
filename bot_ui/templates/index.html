@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lasombra — Bot Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background: #0d1117; }
+    .card { background: #161b22; border-color: #30363d; }
+    .card-header { border-color: #30363d; }
+    #log-box {
+      background: #0d1117;
+      font-family: monospace;
+      font-size: .78rem;
+      height: 280px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .dot-online  { background: #3fb950; box-shadow: 0 0 6px #3fb950; }
+    .dot-offline { background: #f85149; }
+    .dot-record  { background: #f0883e; box-shadow: 0 0 6px #f0883e; animation: pulse 1.4s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
+    .session-link { color: #58a6ff; text-decoration: none; }
+    .session-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-dark border-bottom border-secondary mb-4" style="background:#161b22">
+  <div class="container-fluid">
+    <span class="navbar-brand fw-bold"><i class="bi bi-mic-fill me-2 text-danger"></i>Lasombra</span>
+    <a href="{{ portal_url }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+      <i class="bi bi-box-arrow-up-right me-1"></i>Portal
+    </a>
+  </div>
+</nav>
+
+<div class="container-fluid px-4">
+  <div class="row g-4">
+
+    <!-- Status card -->
+    <div class="col-12 col-lg-4">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center">
+          <i class="bi bi-activity me-2"></i>Bot Status
+        </div>
+        <div class="card-body" id="status-body">
+          <div class="text-secondary">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent sessions -->
+    <div class="col-12 col-lg-8">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center">
+          <i class="bi bi-calendar-event me-2"></i>Recent Sessions
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-dark table-hover mb-0">
+            <thead class="table-secondary">
+              <tr>
+                <th>Session</th>
+                <th>Campaign</th>
+                <th>Recorded</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-body">
+              <tr><td colspan="3" class="text-secondary p-3">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-terminal me-2"></i>Bot Log</span>
+          <span class="badge bg-secondary" id="log-badge">—</span>
+        </div>
+        <div class="card-body p-2">
+          <div id="log-box" class="p-2 rounded text-success">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso + (iso.endsWith('Z') ? '' : 'Z')).toLocaleString();
+  }
+
+  async function refreshStatus() {
+    const res = await fetch('/api/status').then(r => r.json()).catch(() => ({ online: false }));
+    const el = document.getElementById('status-body');
+
+    if (!res.online) {
+      el.innerHTML = `<span class="status-dot dot-offline"></span><span class="text-danger fw-semibold">Offline</span>`;
+      return;
+    }
+
+    if (res.recording) {
+      el.innerHTML = `
+        <div class="mb-3">
+          <span class="status-dot dot-record"></span>
+          <span class="text-warning fw-semibold">Recording</span>
+        </div>
+        <div class="small text-secondary mb-1">Campaign</div>
+        <div class="fw-semibold mb-3 text-uppercase">${res.campaign}</div>
+        <div class="small text-secondary mb-1">Elapsed</div>
+        <div class="fw-semibold font-monospace mb-3">${res.elapsed}</div>
+        <div class="small text-secondary mb-1">Speakers</div>
+        <div>${(res.speakers || []).map(s => `<span class="badge bg-secondary me-1">${s}</span>`).join('') || '—'}</div>`;
+    } else {
+      el.innerHTML = `
+        <div class="mb-3">
+          <span class="status-dot dot-online"></span>
+          <span class="text-success fw-semibold">Online — Idle</span>
+        </div>
+        <div class="small text-secondary">Ready to record. Use <code>/record start</code> in Discord.</div>`;
+    }
+  }
+
+  async function refreshSessions() {
+    const res = await fetch('/api/sessions').then(r => r.json()).catch(() => ({ sessions: [] }));
+    const tbody = document.getElementById('sessions-body');
+    if (!res.sessions.length) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-secondary p-3">No sessions recorded yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = res.sessions.map(s => `
+      <tr>
+        <td><a class="session-link" href="${s.url}" target="_blank">${s.title}</a></td>
+        <td><span class="badge bg-secondary">${s.campaign_name}</span></td>
+        <td class="text-secondary small">${fmtDate(s.created_at)}</td>
+      </tr>`).join('');
+  }
+
+  async function refreshLogs() {
+    const res = await fetch('/api/logs').then(r => r.json()).catch(() => ({ lines: [] }));
+    const box = document.getElementById('log-box');
+    const badge = document.getElementById('log-badge');
+    box.textContent = res.lines.join('\n') || '(no log lines yet)';
+    badge.textContent = `${res.lines.length} lines`;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function refresh() {
+    await Promise.all([refreshStatus(), refreshSessions(), refreshLogs()]);
+  }
+
+  refresh();
+  setInterval(refresh, 8000);
+</script>
+</body>
+</html>
