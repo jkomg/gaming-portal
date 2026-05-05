@@ -13,3 +13,4 @@ dist/
 build/
 *.egg-info/
 sessions/
+discord_bot/logs/
