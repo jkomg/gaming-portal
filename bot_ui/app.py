@@ -1,16 +1,15 @@
-"""Lasombra management UI."""
+"""Orpheus management UI."""
 from __future__ import annotations
 
 import os
-from typing import Any
 
 import httpx
 from dotenv import load_dotenv
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 
 load_dotenv()
 
-LASOMBRA_API = os.environ.get('LASOMBRA_API', 'http://lasombra:8765')
+ORPHEUS_API = os.environ.get('ORPHEUS_API', 'http://orpheus:8765')
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 TURSO_TOKEN = os.environ.get('TURSO_AUTH_TOKEN', '')
 PORTAL_URL = os.environ.get('PORTAL_URL', 'https://gaming.jkomg.us')
@@ -48,7 +47,16 @@ def _query(sql: str, params: list | None = None) -> list[dict]:
 
 def _bot_get(path: str, timeout: float = 3.0) -> dict | None:
     try:
-        resp = httpx.get(f'{LASOMBRA_API}{path}', timeout=timeout)
+        resp = httpx.get(f'{ORPHEUS_API}{path}', timeout=timeout)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception:
+        return None
+
+
+def _bot_post(path: str, body: dict, timeout: float = 5.0) -> dict | None:
+    try:
+        resp = httpx.post(f'{ORPHEUS_API}{path}', json=body, timeout=timeout)
         resp.raise_for_status()
         return resp.json()
     except Exception:
@@ -87,6 +95,50 @@ def api_sessions():
         return jsonify({'sessions': sessions})
     except Exception as e:
         return jsonify({'sessions': [], 'error': str(e)})
+
+
+@app.route('/api/saved-sessions')
+def api_saved_sessions():
+    data = _bot_get('/saved-sessions')
+    if data is None:
+        return jsonify({'sessions': []})
+    return jsonify(data)
+
+
+@app.route('/api/reprocess', methods=['POST'])
+def api_reprocess():
+    body = request.get_json(force=True) or {}
+    session_id = body.get('session_id', '').strip()
+    if not session_id:
+        return jsonify({'ok': False, 'error': 'session_id required'}), 400
+    result = _bot_post('/reprocess', {'session_id': session_id})
+    if result is None:
+        return jsonify({'ok': False, 'error': 'Bot offline or unreachable'})
+    return jsonify(result)
+
+
+@app.route('/api/diagnose/<session_id>')
+def api_diagnose(session_id):
+    data = _bot_get(f'/diagnose?session_id={session_id}', timeout=10.0)
+    if data is None:
+        return jsonify({'error': 'Bot offline or unreachable'})
+    return jsonify(data)
+
+
+@app.route('/api/restart', methods=['POST'])
+def api_restart():
+    result = _bot_post('/restart', {})
+    if result is None:
+        return jsonify({'ok': False, 'error': 'Bot offline or unreachable'})
+    return jsonify(result)
+
+
+@app.route('/api/sync', methods=['POST'])
+def api_sync():
+    result = _bot_post('/sync', {}, timeout=15.0)
+    if result is None:
+        return jsonify({'ok': False, 'error': 'Bot offline or unreachable'})
+    return jsonify(result)
 
 
 @app.route('/api/logs')

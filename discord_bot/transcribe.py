@@ -13,7 +13,7 @@ from functools import lru_cache
 import numpy as np
 from faster_whisper import WhisperModel
 
-log = logging.getLogger('lasombra.transcribe')
+log = logging.getLogger('orpheus.transcribe')
 
 # Override with WHISPER_MODEL env var: tiny / base / small / medium / large-v3
 MODEL_SIZE = os.environ.get('WHISPER_MODEL', 'medium')

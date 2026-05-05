@@ -19,7 +19,7 @@ paste relevant logs here
 ```
 
 **Environment**
-- Component: Portal / Lasombra bot / Management UI
+- Component: Portal / Orpheus bot / Management UI
 - Python version:
 - OS:
 - Deployment: local / Cloud Run / other

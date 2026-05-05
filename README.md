@@ -7,7 +7,7 @@ A self-hosted web portal for tabletop RPG groups — campaign wikis, session not
 - **Campaign wiki** — per-campaign wiki with categories, Markdown editing, status workflow (Draft → Active → Completed → Archived), and full-text search
 - **Discord OAuth** — staff access controlled by Discord user ID allowlist
 - **Notion sync** — import characters, locations, factions, and other content from Notion databases
-- **Lasombra** — Discord bot that joins voice, records per-user audio, transcribes locally with [faster-whisper](https://github.com/SYSTRAN/faster-whisper), summarizes with Claude, and posts session notes directly to the wiki
+- **Orpheus** — Discord bot that joins voice, records per-user audio, transcribes locally with [faster-whisper](https://github.com/SYSTRAN/faster-whisper), summarizes with Claude, and posts session notes directly to the wiki
 
 ## Stack
 
@@ -30,7 +30,7 @@ cp .env.example .env   # fill in values
 python run.py
 ```
 
-### Lasombra bot + management UI (Docker)
+### Orpheus bot + management UI (Docker)
 
 Requires Docker and Docker Compose.
 

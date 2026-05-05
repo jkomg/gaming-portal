@@ -99,7 +99,7 @@ def post_session(
         '''INSERT INTO wiki_pages
            (campaign_id, slug, title, summary, body_markdown, category,
             status, source, updated_by, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, 'sessions', 'active', 'bot', 'Lasombra', ?, ?)''',
+           VALUES (?, ?, ?, ?, ?, 'sessions', 'active', 'bot', 'Orpheus', ?, ?)''',
         [
             campaign_id, slug, title,
             f'Auto-generated notes for session {session_num}.',

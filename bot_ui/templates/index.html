@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lasombra — Bot Management</title>
+  <title>Orpheus — Bot Management</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
@@ -36,7 +36,7 @@
 <body>
 <nav class="navbar navbar-dark border-bottom border-secondary mb-4" style="background:#161b22">
   <div class="container-fluid">
-    <span class="navbar-brand fw-bold"><i class="bi bi-mic-fill me-2 text-danger"></i>Lasombra</span>
+    <span class="navbar-brand fw-bold"><i class="bi bi-mic-fill me-2 text-danger"></i>Orpheus</span>
     <a href="{{ portal_url }}" class="btn btn-sm btn-outline-secondary" target="_blank">
       <i class="bi bi-box-arrow-up-right me-1"></i>Portal
     </a>
@@ -81,6 +81,68 @@
       </div>
     </div>
 
+    <!-- Saved sessions (audio on disk, not yet posted) -->
+    <div class="col-12" id="saved-sessions-row" style="display:none">
+      <div class="card">
+        <div class="card-header d-flex align-items-center">
+          <i class="bi bi-hdd me-2 text-warning"></i>Saved Sessions
+          <span class="ms-2 small text-secondary">Audio on disk — not yet posted to wiki</span>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-dark table-hover mb-0">
+            <thead class="table-secondary">
+              <tr>
+                <th>Session ID</th>
+                <th>Campaign</th>
+                <th>Recorded</th>
+                <th>Speakers</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="saved-sessions-body"></tbody>
+          </table>
+          <div id="diag-panel" class="p-3" style="display:none">
+            <div class="small text-secondary mb-2" id="diag-session-label"></div>
+            <table class="table table-dark table-sm mb-0">
+              <thead class="table-secondary">
+                <tr>
+                  <th>Speaker</th>
+                  <th class="text-end">Packets</th>
+                  <th class="text-end">Duration</th>
+                  <th class="text-end">File</th>
+                  <th class="text-end">RMS</th>
+                  <th class="text-end">dBFS</th>
+                </tr>
+              </thead>
+              <tbody id="diag-body"></tbody>
+            </table>
+            <div class="small text-secondary mt-2">
+              Healthy speech is typically <strong>−30 to −10 dBFS</strong>.
+              Values below −50 dBFS suggest silence or capture failure.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex align-items-center">
+          <i class="bi bi-gear me-2"></i>Bot Settings
+        </div>
+        <div class="card-body d-flex align-items-center gap-3 flex-wrap">
+          <button id="btn-restart" class="btn btn-sm btn-outline-warning" onclick="restartBot(this)">
+            <i class="bi bi-arrow-clockwise me-1"></i>Restart Bot
+          </button>
+          <button id="btn-sync" class="btn btn-sm btn-outline-info" onclick="syncCommands(this)">
+            <i class="bi bi-cloud-upload me-1"></i>Sync Commands
+          </button>
+          <span id="settings-msg" class="small text-secondary"></span>
+        </div>
+      </div>
+    </div>
+
     <!-- Log -->
     <div class="col-12">
       <div class="card">
@@ -98,6 +160,54 @@
 </div>
 
 <script>
+  let _processingStartedAt = null;
+
+  setInterval(() => {
+    if (!_processingStartedAt) return;
+    const secs = Math.floor((Date.now() - _processingStartedAt) / 1000);
+    const m = Math.floor(secs / 60), s = secs % 60;
+    const el = document.getElementById('processing-elapsed');
+    if (el) el.textContent = `(${m}m ${s}s)`;
+  }, 1000);
+
+  async function restartBot(btn) {
+    const msg = document.getElementById('settings-msg');
+    btn.disabled = true;
+    msg.className = 'small text-warning';
+    msg.textContent = 'Sending restart signal…';
+    const res = await fetch('/api/restart', {method: 'POST'})
+      .then(r => r.json()).catch(() => ({ok: false, error: 'Network error'}));
+    if (!res.ok) {
+      msg.className = 'small text-danger';
+      msg.textContent = 'Failed: ' + (res.error || 'Unknown error');
+      btn.disabled = false;
+      return;
+    }
+    msg.textContent = 'Restarting…';
+    const poll = setInterval(async () => {
+      const s = await fetch('/api/status').then(r => r.json()).catch(() => ({online: false}));
+      if (s.online) {
+        clearInterval(poll);
+        msg.className = 'small text-success';
+        msg.textContent = 'Back online!';
+        btn.disabled = false;
+        refresh();
+      }
+    }, 2000);
+  }
+
+  async function syncCommands(btn) {
+    const msg = document.getElementById('settings-msg');
+    btn.disabled = true;
+    msg.className = 'small text-info';
+    msg.textContent = 'Syncing commands…';
+    const res = await fetch('/api/sync', {method: 'POST'})
+      .then(r => r.json()).catch(() => ({ok: false, error: 'Network error'}));
+    msg.className = 'small ' + (res.ok ? 'text-success' : 'text-danger');
+    msg.textContent = res.ok ? 'Commands synced!' : 'Failed: ' + (res.error || 'Unknown error');
+    btn.disabled = false;
+  }
+
   function fmtDate(iso) {
     if (!iso) return '—';
     return new Date(iso + (iso.endsWith('Z') ? '' : 'Z')).toLocaleString();
@@ -127,10 +237,12 @@
         posting:      'Posting to wiki',
       }[p.phase] || p.phase;
 
+      _processingStartedAt = p.started_at ? new Date(p.started_at) : null;
       el.innerHTML = `
         <div class="mb-3">
           <span class="status-dot dot-record"></span>
           <span class="text-warning fw-semibold">Processing session</span>
+          <span id="processing-elapsed" class="small text-secondary ms-2"></span>
         </div>
         <div class="small text-secondary mb-1">${phaseLabel}</div>
         <div class="small text-muted mb-2">${p.detail || ''}</div>
@@ -141,6 +253,7 @@
         <div class="small text-secondary text-end">${pct}%</div>`;
 
     } else if (res.recording) {
+      _processingStartedAt = null;
       el.innerHTML = `
         <div class="mb-3">
           <span class="status-dot dot-record"></span>
@@ -177,6 +290,94 @@
       </tr>`).join('');
   }
 
+  async function reprocess(sessionId, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Starting…';
+    const res = await fetch('/api/reprocess', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: sessionId}),
+    }).then(r => r.json()).catch(() => ({ok: false, error: 'Network error'}));
+    if (res.ok) {
+      btn.textContent = 'Queued';
+      btn.classList.replace('btn-warning', 'btn-success');
+    } else {
+      btn.textContent = 'Failed';
+      btn.classList.replace('btn-warning', 'btn-danger');
+      btn.disabled = false;
+    }
+  }
+
+  async function refreshSavedSessions() {
+    const res = await fetch('/api/saved-sessions').then(r => r.json()).catch(() => ({sessions: []}));
+    const row = document.getElementById('saved-sessions-row');
+    const tbody = document.getElementById('saved-sessions-body');
+    if (!res.sessions.length) {
+      row.style.display = 'none';
+      return;
+    }
+    row.style.display = '';
+    tbody.innerHTML = res.sessions.map(s => `
+      <tr>
+        <td class="font-monospace small">${s.session_id}</td>
+        <td><span class="badge bg-secondary">${s.campaign}</span></td>
+        <td class="text-secondary small">${fmtDate(s.started_at)}</td>
+        <td class="text-secondary small">${s.speaker_count} speaker${s.speaker_count !== 1 ? 's' : ''}</td>
+        <td class="text-end d-flex gap-1 justify-content-end">
+          <button class="btn btn-sm btn-outline-info" onclick="diagnose('${s.session_id}', this)">
+            <i class="bi bi-stethoscope me-1"></i>Diagnose
+          </button>
+          <button class="btn btn-sm btn-warning" onclick="reprocess('${s.session_id}', this)">
+            <i class="bi bi-arrow-clockwise me-1"></i>Reprocess
+          </button>
+        </td>
+      </tr>`).join('');
+  }
+
+  async function diagnose(sessionId, btn) {
+    const panel = document.getElementById('diag-panel');
+    const label = document.getElementById('diag-session-label');
+    const tbody = document.getElementById('diag-body');
+
+    // Toggle off if already showing this session
+    if (panel.style.display !== 'none' && label.dataset.session === sessionId) {
+      panel.style.display = 'none';
+      return;
+    }
+
+    btn.disabled = true;
+    panel.style.display = 'none';
+    const res = await fetch(`/api/diagnose/${sessionId}`)
+      .then(r => r.json())
+      .catch(() => ({ error: 'Network error' }));
+    btn.disabled = false;
+
+    if (res.error) {
+      label.textContent = `Error: ${res.error}`;
+      label.dataset.session = sessionId;
+      tbody.innerHTML = '';
+      panel.style.display = '';
+      return;
+    }
+
+    label.textContent = `Audio diagnostics — ${sessionId}`;
+    label.dataset.session = sessionId;
+    tbody.innerHTML = res.speakers.map(s => {
+      const dbClass = s.rms_db > -30 ? 'text-success'
+                    : s.rms_db > -50 ? 'text-warning'
+                    : 'text-danger';
+      return `<tr>
+        <td>${s.name}</td>
+        <td class="text-end font-monospace">${s.packets}</td>
+        <td class="text-end font-monospace">${s.duration_s}s</td>
+        <td class="text-end font-monospace">${s.file_kb}K</td>
+        <td class="text-end font-monospace">${s.rms}</td>
+        <td class="text-end font-monospace ${dbClass}">${s.rms_db} dB</td>
+      </tr>`;
+    }).join('');
+    panel.style.display = '';
+  }
+
   async function refreshLogs() {
     const res = await fetch('/api/logs').then(r => r.json()).catch(() => ({ lines: [] }));
     const box = document.getElementById('log-box');
@@ -187,7 +388,7 @@
   }
 
   async function refresh() {
-    await Promise.all([refreshStatus(), refreshSessions(), refreshLogs()]);
+    await Promise.all([refreshStatus(), refreshSessions(), refreshSavedSessions(), refreshLogs()]);
   }
 
   refresh();

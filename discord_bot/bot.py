@@ -1,4 +1,4 @@
-"""Lasombra — TTRPG session recording bot.
+"""Orpheus — TTRPG session recording bot.
 
 Slash commands:
   /record start campaign:<slug>  — join voice and start recording
@@ -53,7 +53,7 @@ _buffer = LogBufferHandler()
 _buffer.setFormatter(_fmt)
 
 logging.basicConfig(level=logging.INFO, handlers=[_stream, _buffer])
-log = logging.getLogger('lasombra')
+log = logging.getLogger('orpheus')
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
@@ -190,6 +190,40 @@ async def record_status(interaction: discord.Interaction) -> None:
     )
 
 
+@record_group.command(name='reprocess', description='Reprocess a saved session from disk')
+@app_commands.describe(session_id='Session folder name (e.g. 20250428_2100_keys)')
+async def record_reprocess(interaction: discord.Interaction, session_id: str) -> None:
+    await interaction.response.defer(ephemeral=True)
+    ok = await _reprocess_session(session_id.strip(), interaction.channel_id)
+    if not ok:
+        await interaction.followup.send(
+            f'Session `{session_id}` not found or has no audio files.',
+            ephemeral=True,
+        )
+        return
+    await interaction.followup.send(
+        f'Reprocessing `{session_id}` — I\'ll post here when notes are ready.',
+        ephemeral=False,
+    )
+
+
+@record_reprocess.autocomplete('session_id')
+async def _reprocess_autocomplete(
+    interaction: discord.Interaction, current: str
+) -> list[app_commands.Choice[str]]:
+    from audio_sink import SESSIONS_DIR
+    if not SESSIONS_DIR.exists():
+        return []
+    dirs = [
+        d.name for d in sorted(SESSIONS_DIR.iterdir(), reverse=True)
+        if d.is_dir() and list(d.glob('*.lsm'))
+    ]
+    return [
+        app_commands.Choice(name=d, value=d)
+        for d in dirs if current.lower() in d.lower()
+    ][:25]
+
+
 @record_group.command(name='campaigns', description='List available campaign slugs')
 async def record_campaigns(interaction: discord.Interaction) -> None:
     from wiki_poster import get_campaigns
@@ -226,9 +260,11 @@ async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None
             return
 
         total_users = len(chunks)
+        processing_started_at = datetime.utcnow().isoformat() + 'Z'
 
         def set_progress(**kwargs) -> None:
             _processing.clear()
+            _processing['started_at'] = processing_started_at
             _processing.update(kwargs)
 
         def on_transcription_progress(completed: int, name: str) -> None:
@@ -272,8 +308,10 @@ async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None
         _processing.clear()
         log.info('Session posted: %s', wiki_url)
         # Clean up raw audio now that it's safely in the wiki
-        import shutil
-        shutil.rmtree(sink.session_dir, ignore_errors=True)
+        # Set KEEP_SESSIONS=1 in .env to skip deletion for diagnostic purposes
+        if not os.environ.get('KEEP_SESSIONS'):
+            import shutil
+            shutil.rmtree(sink.session_dir, ignore_errors=True)
         if channel:
             await channel.send(f'Session notes posted: {wiki_url}')
 
@@ -294,6 +332,48 @@ def _run_summarize(transcript_lines, campaign, date_str):
     return summarize_transcript(transcript_lines, campaign, date_str)
 
 
+async def _reprocess_session(session_id: str, channel_id: int = 0) -> bool:
+    """Load a saved session from disk and run the full processing pipeline."""
+    import json as _json
+    from audio_sink import SESSIONS_DIR
+
+    session_dir = SESSIONS_DIR / session_id
+    meta_path = session_dir / 'meta.json'
+    if not session_dir.exists() or not meta_path.exists():
+        return False
+    if not list(session_dir.glob('*.lsm')):
+        return False
+
+    meta = _json.loads(meta_path.read_text())
+
+    class _Sink:
+        pass
+
+    sink = _Sink()
+    sink.session_dir = session_dir  # type: ignore[attr-defined]
+
+    state = {
+        'campaign': meta['campaign'],
+        'campaign_id': meta['campaign_id'],
+        'started_at': datetime.fromisoformat(meta['started_at']),
+        'session_id': session_id,
+    }
+    log.info('Reprocessing session %s', session_id)
+    asyncio.create_task(_process(state, sink, 0, channel_id))
+    return True
+
+
+async def _sync_commands() -> None:
+    for guild_id in GUILD_IDS:
+        guild = discord.Object(id=guild_id)
+        bot.tree.copy_global_to(guild=guild)
+        await bot.tree.sync(guild=guild)
+        log.info('Commands synced to guild %d (via API)', guild_id)
+    if not GUILD_IDS:
+        await bot.tree.sync()
+        log.info('Commands synced globally (via API)')
+
+
 def _run_post(campaign_id, campaign, started_at, summary_md, transcript_lines):
     from wiki_poster import post_session
     return post_session(campaign_id, campaign, started_at, summary_md, transcript_lines)
@@ -306,12 +386,18 @@ _status_started = False
 @bot.event
 async def on_ready() -> None:
     global _status_started
-    log.info('Lasombra online as %s (id=%s)', bot.user, bot.user.id)
+    log.info('Orpheus online as %s (id=%s)', bot.user, bot.user.id)
 
     if not _status_started:
         _status_started = True
         from status_api import start
-        asyncio.create_task(start(_active, _processing, port=STATUS_PORT))
+        from audio_sink import SESSIONS_DIR
+        asyncio.create_task(start(
+            _active, _processing, port=STATUS_PORT,
+            reprocess_fn=_reprocess_session,
+            sync_fn=_sync_commands,
+            sessions_dir=SESSIONS_DIR,
+        ))
 
     for guild_id in GUILD_IDS:
         guild = discord.Object(id=guild_id)

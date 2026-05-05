@@ -1,5 +1,5 @@
 services:
-  lasombra:
+  orpheus:
     build:
       context: ./discord_bot
     env_file: ./discord_bot/.env
@@ -10,14 +10,14 @@ services:
       - "8765:8765"      # status API — only exposed locally
     restart: unless-stopped
 
-  lasombra-ui:
+  orpheus-ui:
     build:
       context: ./bot_ui
     env_file: ./bot_ui/.env
     ports:
       - "3000:3000"
     depends_on:
-      - lasombra
+      - orpheus
     restart: unless-stopped
 
 volumes:
