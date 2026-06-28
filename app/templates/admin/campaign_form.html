@@ -3,20 +3,24 @@
 
 {% block content %}
 <div class="d-flex align-items-center gap-3 mb-4">
-    <a href="{{ url_for('admin.index') }}" class="text-muted text-decoration-none">← Campaigns</a>
-    <h1 class="h3 mb-0">{% if campaign %}{{ campaign.name }}{% else %}New Campaign{% endif %}</h1>
+    <a href="{{ url_for('admin.index') }}" class="btn-ghost" style="font-size:12px;padding:5px 12px;">
+        <i class="bi bi-arrow-left"></i> Campaigns
+    </a>
+    <div>
+        <p class="admin-page-kicker mb-0">{% if campaign %}Editing{% else %}New campaign{% endif %}</p>
+        <h1 class="admin-page-title">{% if campaign %}{{ campaign.name }}{% else %}New Campaign{% endif %}</h1>
+    </div>
 </div>
 
 <div class="row g-4">
 <div class="col-lg-8">
 
-{# ── Campaign settings form ──────────────────────────────────────────────── #}
 <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="card mb-4" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
-        <div class="card-header fw-semibold">Basic Info</div>
-        <div class="card-body row g-3">
+    <div class="admin-card">
+        <div class="admin-card-header">Basic info</div>
+        <div class="admin-card-body row g-3">
             <div class="col-md-8">
                 <label class="form-label">Name</label>
                 <input type="text" class="form-control" name="name"
@@ -26,7 +30,9 @@
                 <label class="form-label">Status</label>
                 <select class="form-select" name="status">
                     {% for s in statuses %}
-                    <option value="{{ s }}" {% if campaign and campaign.status == s %}selected{% elif not campaign and s == 'upcoming' %}selected{% endif %}>
+                    <option value="{{ s }}"
+                            {% if campaign and campaign.status == s %}selected
+                            {% elif not campaign and s == 'upcoming' %}selected{% endif %}>
                         {{ status_labels[s] }}
                     </option>
                     {% endfor %}
@@ -34,7 +40,7 @@
             </div>
             {% if not campaign %}
             <div class="col-md-6">
-                <label class="form-label">Slug <span class="text-muted">(URL-safe, e.g. gotw)</span></label>
+                <label class="form-label">Slug <span style="color:var(--text-faintest);font-weight:400;">(URL key, e.g. gotw)</span></label>
                 <input type="text" class="form-control font-monospace" name="slug"
                        pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, hyphens only" required>
             </div>
@@ -50,21 +56,22 @@
                 <textarea class="form-control" name="description" rows="3">{{ campaign.description if campaign else '' }}</textarea>
             </div>
             <div class="col-md-8">
-                <label class="form-label">Cover Image URL <span class="text-muted">(or /static/img/slug.png)</span></label>
+                <label class="form-label">Cover image URL</label>
                 <input type="text" class="form-control" name="cover_image_url"
-                       value="{{ campaign.cover_image_url if campaign else '' }}">
+                       value="{{ campaign.cover_image_url if campaign else '' }}"
+                       placeholder="/static/img/slug.png">
             </div>
             <div class="col-md-4">
-                <label class="form-label">Sort Order</label>
+                <label class="form-label">Sort order</label>
                 <input type="number" class="form-control" name="sort_order"
                        value="{{ campaign.sort_order if campaign else 0 }}">
             </div>
         </div>
     </div>
 
-    <div class="card mb-4" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
-        <div class="card-header fw-semibold">Wiki Settings</div>
-        <div class="card-body row g-3">
+    <div class="admin-card">
+        <div class="admin-card-header">Wiki settings</div>
+        <div class="admin-card-body row g-3">
             <div class="col-12">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="wiki_enabled" value="1" id="wiki_enabled"
@@ -73,31 +80,31 @@
                 </div>
             </div>
             <div class="col-12">
-                <label class="form-label">External Wiki URL <span class="text-muted">(overrides built-in — leave blank to use built-in)</span></label>
+                <label class="form-label">External wiki URL <span style="color:var(--text-faintest);font-weight:400;">(overrides built-in)</span></label>
                 <input type="url" class="form-control" name="wiki_url"
                        value="{{ campaign.wiki_url if campaign else '' }}"
                        placeholder="https://mcbn.jkomg.us/wiki">
             </div>
             <div class="col-12">
-                <label class="form-label">Wiki Categories <span class="text-muted">(JSON array — leave blank for defaults)</span></label>
+                <label class="form-label">Wiki categories <span style="color:var(--text-faintest);font-weight:400;">(JSON — leave blank for defaults)</span></label>
                 <textarea class="form-control font-monospace" name="wiki_categories_json" rows="5"
                           placeholder='[{"slug":"locations","name":"Locations","icon":"bi-geo-alt-fill"},...]'>{{ campaign._wiki_categories if campaign else '' }}</textarea>
-                <div class="form-text">Default: Locations, Characters, Factions, Lore</div>
+                <div class="form-text">Default categories: Locations, Characters, Factions, Lore</div>
             </div>
         </div>
     </div>
 
-    <div class="card mb-4" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
-        <div class="card-header fw-semibold">Notion Sync Config</div>
-        <div class="card-body row g-3">
+    <div class="admin-card">
+        <div class="admin-card-header">Notion sync</div>
+        <div class="admin-card-body row g-3">
             <div class="col-12">
-                <label class="form-label">Notion Token Env Var <span class="text-muted">(env var name, defaults to NOTION_TOKEN)</span></label>
+                <label class="form-label">Notion token env var <span style="color:var(--text-faintest);font-weight:400;">(defaults to NOTION_TOKEN)</span></label>
                 <input type="text" class="form-control font-monospace" name="notion_token_secret"
                        value="{{ campaign.notion_token_secret if campaign else '' }}"
                        placeholder="NOTION_TOKEN">
             </div>
             <div class="col-12">
-                <label class="form-label">Notion Databases <span class="text-muted">(JSON: {"category_slug": "notion_db_id"})</span></label>
+                <label class="form-label">Notion databases <span style="color:var(--text-faintest);font-weight:400;">(JSON: {"category": "db_id"})</span></label>
                 <textarea class="form-control font-monospace" name="notion_databases_json" rows="5"
                           placeholder='{"locations":"abc123...","characters":"def456..."}'>{{ campaign._notion_databases if campaign else '' }}</textarea>
             </div>
@@ -105,73 +112,67 @@
     </div>
 
     <div class="d-flex gap-2 justify-content-end mb-4">
-        <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">Cancel</a>
-        <button type="submit" class="btn btn-primary">
-            {% if campaign %}Save Changes{% else %}Create Campaign{% endif %}
+        <a href="{{ url_for('admin.index') }}" class="btn-ghost">Cancel</a>
+        <button type="submit" class="btn-accent">
+            {% if campaign %}Save changes{% else %}Create campaign{% endif %}
         </button>
     </div>
 </form>
 
-{# ── Notion sync — separate form so it doesn't nest inside campaign form ── #}
 {% if campaign and campaign.notion_databases %}
 <form method="post" action="{{ url_for('admin.notion_sync', slug=campaign.slug) }}" class="mb-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn btn-outline-info"
+    <button type="submit" class="btn-ghost"
             onclick="return confirm('Run Notion sync for {{ campaign.name }}?')">
-        <i class="bi bi-arrow-repeat me-1"></i>Run Notion Sync Now
+        <i class="bi bi-arrow-repeat"></i> Run Notion sync now
     </button>
-    <span class="text-muted small ms-2">Pulls all pages from configured Notion databases</span>
+    <span style="font-size:12px;color:var(--text-faint);margin-left:8px;">Pulls all pages from configured Notion databases</span>
 </form>
 {% endif %}
 
-{# ── Sync history ─────────────────────────────────────────────────────────── #}
 {% if campaign %}
-<div class="card mb-4" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
-    <div class="card-header fw-semibold">Sync History</div>
-    <div class="card-body p-0">
-        <table class="table table-dark table-sm mb-0" style="font-size:0.8rem;">
-            <thead>
-                <tr>
-                    <th>When</th>
-                    <th>Status</th>
-                    <th>Pages</th>
-                    <th>Detail</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for log in sync_logs %}
-            <tr>
-                <td class="text-muted text-nowrap">{{ log.triggered_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>
-                    {% if log.status == 'success' %}
-                    <span class="badge bg-success">success</span>
-                    {% elif log.status == 'partial' %}
-                    <span class="badge bg-warning text-dark">partial</span>
-                    {% else %}
-                    <span class="badge bg-danger">error</span>
-                    {% endif %}
-                </td>
-                <td>{{ log.pages_synced }}</td>
-                <td class="text-muted" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-                    title="{{ log.detail }}">{{ log.detail }}</td>
-            </tr>
-            {% endfor %}
-            {% if not sync_logs %}
-            <tr><td colspan="4" class="text-muted text-center py-3">No syncs run yet.</td></tr>
-            {% endif %}
-            </tbody>
-        </table>
-    </div>
+<div class="admin-card">
+    <div class="admin-card-header">Sync history</div>
+    <table class="admin-table">
+        <thead>
+            <tr><th>When</th><th>Status</th><th>Pages</th><th>Detail</th></tr>
+        </thead>
+        <tbody>
+        {% for log in sync_logs %}
+        <tr>
+            <td style="font-size:12px;color:var(--text-muted);white-space:nowrap;">
+                {{ log.triggered_at.strftime('%Y-%m-%d %H:%M') }}
+            </td>
+            <td>
+                {% if log.status == 'success' %}
+                <span class="badge-status-active">success</span>
+                {% elif log.status == 'partial' %}
+                <span class="badge-status-upcoming">partial</span>
+                {% else %}
+                <span style="background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.25);border-radius:999px;padding:2px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">error</span>
+                {% endif %}
+            </td>
+            <td style="font-size:13px;color:var(--text-muted);">{{ log.pages_synced }}</td>
+            <td style="font-size:12px;color:var(--text-faint);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                title="{{ log.detail }}">{{ log.detail }}</td>
+        </tr>
+        {% endfor %}
+        {% if not sync_logs %}
+        <tr>
+            <td colspan="4" style="text-align:center;color:var(--text-faintest);padding:24px;font-size:13px;">No syncs run yet.</td>
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
 </div>
 {% endif %}
 
-{# ── Delete — separate form ───────────────────────────────────────────────── #}
 {% if campaign %}
 <form method="post" action="{{ url_for('admin.campaign_delete', slug=campaign.slug) }}"
       onsubmit="return confirm('Delete {{ campaign.name }} and ALL its wiki pages? This cannot be undone.')">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="btn btn-sm btn-outline-danger">
-        <i class="bi bi-trash me-1"></i>Delete Campaign
+    <button type="submit" class="btn-ghost" style="color:#f87171;border-color:rgba(248,113,113,.3);font-size:12px;">
+        <i class="bi bi-trash"></i> Delete campaign
     </button>
 </form>
 {% endif %}
@@ -180,37 +181,36 @@
 
 {% if campaign and campaign.wiki_enabled and not campaign.wiki_url %}
 <div class="col-lg-4">
-    <div class="card" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span class="fw-semibold">Wiki Pages</span>
-            <a href="{{ url_for('wiki.new_page', campaign_slug=campaign.slug) }}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-plus-circle me-1"></i>New Page
+    <div class="admin-card">
+        <div class="admin-card-header d-flex justify-content-between align-items-center">
+            <span>Wiki pages</span>
+            <a href="{{ url_for('wiki.new_page', campaign_slug=campaign.slug) }}"
+               class="btn-ghost" style="padding:3px 10px;font-size:11px;">
+                <i class="bi bi-plus"></i> New
             </a>
         </div>
-        <div class="card-body p-0">
-            {% set pages = campaign.wiki_pages.order_by('title').limit(20).all() %}
-            {% if pages %}
-            <ul class="list-group list-group-flush">
-                {% for p in pages %}
-                <li class="list-group-item d-flex justify-content-between align-items-center"
-                    style="background:transparent;border-color:rgba(255,255,255,0.06);">
-                    <a href="{{ url_for('wiki.edit_page', campaign_slug=campaign.slug, page_slug=p.slug) }}"
-                       class="text-decoration-none text-light small">{{ p.title }}</a>
-                    <span class="badge {% if p.status == 'active' %}bg-success{% elif p.status == 'draft' %}bg-secondary{% elif p.status == 'upcoming' %}bg-info{% else %}bg-dark{% endif %}">
-                        {{ p.status }}
-                    </span>
-                </li>
-                {% endfor %}
-            </ul>
-            <div class="p-2 text-center">
-                <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}" class="text-muted small">
-                    View wiki →
+        {% set pages = campaign.wiki_pages.order_by('title').limit(20).all() %}
+        {% if pages %}
+        <div>
+            {% for p in pages %}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 18px;border-bottom:1px solid var(--border);">
+                <a href="{{ url_for('wiki.edit_page', campaign_slug=campaign.slug, page_slug=p.slug) }}"
+                   style="font-size:13px;color:var(--text);text-decoration:none;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    {{ p.title }}
                 </a>
+                <span class="badge-status-{% if p.status == 'active' %}active{% elif p.status == 'draft' %}draft{% elif p.status == 'upcoming' %}upcoming{% else %}other{% endif %} ms-2" style="flex-shrink:0;">
+                    {{ p.status }}
+                </span>
             </div>
-            {% else %}
-            <p class="p-3 text-muted small mb-0">No pages yet.</p>
-            {% endif %}
+            {% endfor %}
         </div>
+        <div style="padding:10px 18px;text-align:center;">
+            <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}"
+               style="font-size:12px;color:var(--text-faint);">View wiki →</a>
+        </div>
+        {% else %}
+        <div style="padding:24px 18px;text-align:center;font-size:13px;color:var(--text-faintest);">No pages yet.</div>
+        {% endif %}
     </div>
 </div>
 {% endif %}
