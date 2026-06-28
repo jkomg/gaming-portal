@@ -5,7 +5,7 @@ import html as _html_mod
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from flask import (
-    Blueprint, render_template, request, redirect, url_for, flash, abort, g,
+    Blueprint, render_template, request, redirect, url_for, flash, abort, g, jsonify,
 )
 import markdown as md_lib
 from markupsafe import Markup
@@ -121,6 +121,61 @@ def _render_md(text: str) -> Markup:
     return Markup(s.get_output())
 
 
+# Matches href values that look like internal wiki page slugs:
+# - bare slug: "elysium"
+# - relative: "./elysium"
+# - absolute wiki path: "/mcbn/wiki/elysium"
+_WIKI_HREF_RE = re.compile(
+    r'^(?:(?P<abs>/[^/]+/wiki/(?P<abs_slug>[^/?#]+))|(?:\./)?(?P<rel>[a-z0-9][a-z0-9\-]*))$'
+)
+
+
+def _mark_red_links(html: str, campaign_id: int, campaign_slug: str) -> Markup:
+    """Replace links to missing wiki pages with red-link styled anchors."""
+    # Collect all slugs that exist in this campaign (one query)
+    existing = frozenset(
+        row[0] for row in
+        db.session.query(WikiPage.slug).filter_by(campaign_id=campaign_id).all()
+    )
+
+    def _replace(m: re.Match) -> str:
+        full_tag = m.group(0)
+        href = m.group(1)
+        pm = _WIKI_HREF_RE.match(href)
+        if not pm:
+            return full_tag
+        if pm.group('abs'):
+            # Absolute path — only process if it belongs to this campaign
+            if not href.startswith(f'/{campaign_slug}/wiki/'):
+                return full_tag
+            slug = pm.group('abs_slug')
+        else:
+            slug = pm.group('rel')
+            if not slug:
+                return full_tag
+
+        if slug in existing:
+            return full_tag
+
+        # Missing page → red link
+        new_href = f'/{campaign_slug}/wiki/{slug}'
+        existing_class = re.search(r'class="([^"]*)"', full_tag)
+        if existing_class:
+            new_tag = full_tag.replace(
+                existing_class.group(0),
+                f'class="{existing_class.group(1)} wiki-red-link"'
+            )
+        else:
+            new_tag = full_tag.replace(f'href="{href}"',
+                                       f'href="{new_href}" class="wiki-red-link"')
+        # Append ? chip after closing >
+        new_tag = re.sub(r'>(?=.*?</a>)', '><sup class="wiki-red-link-chip">?</sup>', new_tag, count=1)
+        return new_tag
+
+    result = re.sub(r'<a\s[^>]*href="([^"]*)"[^>]*>', _replace, html)
+    return Markup(result)
+
+
 def _slugify(text: str) -> str:
     text = text.lower().strip()
     text = re.sub(r'[^\w\s-]', '', text)
@@ -193,6 +248,15 @@ def search():
                 'title_match': q.lower() in p.title.lower(),
             })
         results.sort(key=lambda r: (not r['title_match'], r['page'].title.lower()))
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        cats = {cat['slug']: cat['name'] for cat in g.campaign.wiki_categories}
+        return jsonify(results=[{
+            'title': r['page'].title,
+            'url': url_for('wiki.page', campaign_slug=g.campaign.slug, page_slug=r['page'].slug),
+            'cover_image_url': r['page'].cover_image_url or '',
+            'category_name': cats.get(r['page'].category, r['page'].category or ''),
+            'excerpt': r['excerpt'],
+        } for r in results])
     return render_template('wiki/search.html', q=q, results=results)
 
 
@@ -214,10 +278,19 @@ def category(category):
 @bp.route('/<page_slug>')
 def page(page_slug):
     c = g.campaign
-    p = WikiPage.query.filter_by(campaign_id=c.id, slug=page_slug).first_or_404()
-    if p.status not in WIKI_PUBLIC_STATUSES and not _is_staff():
-        abort(404)
+    p = WikiPage.query.filter_by(campaign_id=c.id, slug=page_slug).first()
+    if p is None or (p.status not in WIKI_PUBLIC_STATUSES and not _is_staff()):
+        # Suggest nearby pages for the 404 view
+        suggestions = (WikiPage.query
+                       .filter_by(campaign_id=c.id)
+                       .filter(WikiPage.status.in_(WIKI_PUBLIC_STATUSES))
+                       .order_by(WikiPage.updated_at.desc())
+                       .limit(4).all())
+        return render_template('wiki/404.html',
+                               missing_slug=page_slug,
+                               suggestions=suggestions), 404
     body_html = _render_md(p.body_markdown)
+    body_html = _mark_red_links(str(body_html), c.id, c.slug)
     return render_template('wiki/page.html', page=p, body_html=body_html)
 
 

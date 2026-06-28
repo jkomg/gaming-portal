@@ -1,109 +1,214 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>jkomg — Campaign Wikis</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>jkomg — Campaign Chronicles</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
-<body>
+<body class="portal-body">
 
-{% macro _render_card(c) %}
-<div class="col-sm-6 col-md-3">
-    <a href="{{ c.effective_wiki_url or url_for('portal.campaign_home', campaign_slug=c.slug) }}"
-       class="campaign-card campaign-{{ c.slug }}">
-        <div class="campaign-img-wrap">
-            {% if c.cover_image_url %}
-            <img src="{{ c.cover_image_url }}" alt="" class="campaign-img
-                 {% if c.status != 'active' %}campaign-img--dimmed{% endif %}">
+{# Accent map for per-campaign colors #}
+{% set _accent_map = {
+    'mcbn':  ('#d83a4a', '#ff8a96'),
+    'gotw':  ('#6d6cf5', '#a9a8ff'),
+    'vecna': ('#a64dff', '#c89bff'),
+    'keys':  ('#d4b352', '#ecd58a'),
+} %}
+
+{# ── Top bar ── #}
+<header>
+    <div class="portal-topbar">
+        <a class="portal-brand" href="{{ url_for('portal.index') }}">
+            <div class="portal-brand-mark"></div>
+            <div class="portal-brand-text">
+                <span class="portal-brand-name">jkomg gaming</span>
+                <span class="portal-brand-kicker">Campaign Chronicles</span>
+            </div>
+        </a>
+        <div class="portal-topbar-right">
+            <div class="portal-search-field">
+                <i class="bi bi-search" style="font-size:13px;color:var(--text-faint);flex-shrink:0;"></i>
+                <input type="text" id="portalSearch" placeholder="Filter campaigns…" autocomplete="off">
+            </div>
+            {% if is_staff %}
+            <a href="{{ url_for('admin.index') }}" class="portal-staff-chip">
+                <i class="bi bi-gear" style="font-size:12px;"></i> Admin
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="portal-staff-chip">
+                <i class="bi bi-box-arrow-right" style="font-size:12px;"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.discord_redirect') }}" class="portal-staff-chip">
+                <span class="portal-discord-dot"></span> Staff sign in
+            </a>
             {% endif %}
         </div>
-        <div class="campaign-body">
-            <div class="campaign-system">{{ c.system }}</div>
-            <div class="campaign-title">{{ c.name }}</div>
-            <div class="campaign-desc">{{ c.description }}</div>
-            <div class="campaign-status status-{{ c.status }}">
-                {{ status_labels.get(c.status, c.status) }}
-                {% if is_staff %}
-                <span class="ms-1 text-muted" style="font-size:0.7rem;">[{{ c.slug }}]</span>
-                {% endif %}
-            </div>
-        </div>
-    </a>
-    {% if is_staff %}
-    <div class="campaign-admin-bar mt-1 d-flex gap-1">
-        <form method="post" action="{{ url_for('admin.campaign_set_status', slug=c.slug) }}" class="d-flex gap-1 flex-grow-1">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <select name="status" class="form-select form-select-sm" style="font-size:0.75rem;">
-                {% for s in ['active','upcoming','hiatus','complete'] %}
-                <option value="{{ s }}" {% if c.status == s %}selected{% endif %}>{{ status_labels[s] }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Apply"><i class="bi bi-check-lg"></i></button>
-        </form>
-        <a href="{{ url_for('admin.campaign_edit', slug=c.slug) }}" class="btn btn-sm btn-outline-secondary" title="Edit campaign"><i class="bi bi-pencil"></i></a>
     </div>
-    {% endif %}
-</div>
-{% endmacro %}
+</header>
 
-<div class="portal-hero">
-    <img src="{{ url_for('static', filename='img/hero.png') }}" alt="" class="portal-hero-img">
-    <div class="portal-hero-overlay">
-        <h1>jkomg Gaming</h1>
-        <p class="portal-subtitle">Campaign wikis &amp; chronicles</p>
-    </div>
-    <div class="portal-hero-nav">
-        {% if is_staff %}
-        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-outline-light me-2">
-            <i class="bi bi-gear me-1"></i>Admin
-        </a>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-light">
-            <i class="bi bi-box-arrow-right"></i>
-        </a>
-        {% else %}
-        <a href="{{ url_for('auth.discord_redirect') }}" class="btn btn-sm btn-outline-light">
-            <i class="bi bi-discord me-1"></i>Staff Sign In
-        </a>
-        {% endif %}
-    </div>
-</div>
-
-<div class="container py-5">
-    {% with messages = get_flashed_messages(with_categories=true) %}
+{# Flash messages #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div style="max-width:1300px;margin:0 auto;padding:0 40px;">
     {% for cat, msg in messages %}
-    <div class="alert alert-{{ cat }} alert-dismissible fade show">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div class="alert alert-{{ cat }} alert-dismissible fade show" style="background:var(--surface);border:1px solid var(--border-strong);color:var(--text);border-radius:12px;font-size:14px;">
+        {{ msg }}<button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+    </div>
     {% endfor %}
-    {% endwith %}
-
-    {% set active_campaigns = campaigns | selectattr('status', 'equalto', 'active') | list %}
-    {% set other_campaigns  = campaigns | rejectattr('status', 'equalto', 'active') | list %}
-
-    {% if active_campaigns %}
-    <h2 class="section-label mb-4">Active Campaigns</h2>
-    <div class="row g-4 mb-5 justify-content-center">
-        {% for c in active_campaigns %}
-        {{ _render_card(c) }}
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if other_campaigns %}
-    <h2 class="section-label mb-4 mt-2">Other Campaigns</h2>
-    <div class="row g-4 justify-content-center">
-        {% for c in other_campaigns %}
-        {{ _render_card(c) }}
-        {% endfor %}
-    </div>
-    {% endif %}
 </div>
+{% endif %}
+{% endwith %}
 
-<footer class="footer text-center py-3">
-    <small>jkomg.us &mdash; all campaigns &mdash; all worlds &mdash; created by <a href="mailto:jay@jkomg.us">jkomg</a></small>
+{# ── Featured spotlight — first active campaign ── #}
+{% set featured = campaigns | selectattr('status', 'equalto', 'active') | first %}
+{% if featured %}
+{% set _fac = _accent_map.get(featured.slug, ('#d83a4a', '#ff8a96')) %}
+<section class="portal-spotlight-wrap">
+    <div class="portal-spotlight" style="--accent:{{ _fac[0] }};--accent-soft:{{ _fac[1] }};">
+        <div class="portal-spotlight-text">
+            <div class="portal-spotlight-kicker">
+                <span class="portal-spotlight-kicker-dot" style="background:{{ _fac[0] }};box-shadow:0 0 8px {{ _fac[0] }}88;"></span>
+                Now playing · {{ featured.system }}
+            </div>
+            <h2 class="portal-spotlight-title">{{ featured.name }}</h2>
+            <p class="portal-spotlight-desc">{{ featured.description }}</p>
+            <a href="{{ featured.effective_wiki_url or url_for('portal.campaign_home', campaign_slug=featured.slug) }}"
+               class="portal-spotlight-cta" style="background:{{ _fac[0] }};">
+                Enter the wiki →
+            </a>
+        </div>
+        <div class="portal-spotlight-img">
+            {% if featured.cover_image_url %}
+            <img src="{{ featured.cover_image_url }}" alt="{{ featured.name }}">
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ── Campaign library ── #}
+<section class="portal-library-wrap">
+    <div class="portal-library-header">
+        <div class="portal-library-title">
+            All campaigns <span class="portal-library-count" id="visibleCount"></span>
+        </div>
+        <div class="portal-filter-chips" id="filterChips">
+            <button class="portal-filter-chip active" data-system="">All</button>
+            <button class="portal-filter-chip" data-system="Vampire: the Masquerade V5">VtM V5</button>
+            <button class="portal-filter-chip" data-system="Scum &amp; Villainy">Scum &amp; Villainy</button>
+            <button class="portal-filter-chip" data-system="Dungeons &amp; Dragons 5e">D&amp;D 5e</button>
+        </div>
+    </div>
+
+    <div class="portal-library-grid" id="campaignGrid">
+        {% for c in campaigns %}
+        {% set _ac = _accent_map.get(c.slug, ('#d83a4a', '#ff8a96')) %}
+        {% set wiki_url = c.effective_wiki_url or url_for('portal.campaign_home', campaign_slug=c.slug) %}
+        <div class="portal-campaign-card-wrap"
+             data-system="{{ c.system }}"
+             data-name="{{ c.name | lower }}">
+            <a class="portal-campaign-card"
+               href="{{ wiki_url }}"
+               style="--card-accent:{{ _ac[0] }};"
+               onmouseenter="this.style.borderColor='color-mix(in srgb,{{ _ac[0] }} 55%,transparent)';this.style.boxShadow='0 18px 50px color-mix(in srgb,{{ _ac[0] }} 22%,transparent)';"
+               onmouseleave="this.style.borderColor='';this.style.boxShadow='';">
+                <div class="portal-campaign-card-img-wrap {% if not c.cover_image_url %}portal-campaign-card-img-wrap--fallback{% endif %}">
+                    {% if c.cover_image_url %}
+                    <img class="portal-campaign-card-img" src="{{ c.cover_image_url }}" alt="{{ c.name }}">
+                    {% endif %}
+                    <span class="portal-campaign-system-badge">{{ c.system }}</span>
+                    <span class="portal-campaign-status-pill portal-status-{{ c.status }}">
+                        {{ status_labels.get(c.status, c.status) }}
+                    </span>
+                </div>
+                <div class="portal-campaign-card-body">
+                    <div class="portal-campaign-card-name-row">
+                        <span class="portal-campaign-card-dot" style="background:{{ _ac[0] }};box-shadow:0 0 6px {{ _ac[0] }}88;"></span>
+                        <span class="portal-campaign-card-name">{{ c.name }}</span>
+                    </div>
+                    <p class="portal-campaign-card-desc">{{ c.description }}</p>
+                    <div class="portal-campaign-card-footer">
+                        <span>{{ c.system }}</span>
+                        <span class="portal-campaign-card-enter" style="color:{{ _ac[0] }};">Enter →</span>
+                    </div>
+                </div>
+            </a>
+            {% if is_staff %}
+            <div class="portal-campaign-admin-bar">
+                <form method="post" action="{{ url_for('admin.campaign_set_status', slug=c.slug) }}" class="d-flex gap-1 flex-grow-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="status" class="form-select form-select-sm flex-grow-1">
+                        {% for s in ['active','upcoming','hiatus','complete'] %}
+                        <option value="{{ s }}" {% if c.status == s %}selected{% endif %}>{{ status_labels[s] }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-ghost" style="padding:4px 8px;" title="Apply"><i class="bi bi-check-lg"></i></button>
+                </form>
+                <a href="{{ url_for('admin.campaign_edit', slug=c.slug) }}" class="btn-ghost" style="padding:4px 8px;" title="Edit"><i class="bi bi-pencil"></i></a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="portal-library-empty" id="emptyState" style="display:none;">
+            No campaigns match that filter.
+        </div>
+    </div>
+</section>
+
+<footer class="portal-footer">
+    <small>jkomg.us &mdash; all campaigns &mdash; all worlds</small>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+    const cards      = Array.from(document.querySelectorAll('.portal-campaign-card-wrap'));
+    const chips      = document.querySelectorAll('.portal-filter-chip');
+    const searchInput = document.getElementById('portalSearch');
+    const emptyState = document.getElementById('emptyState');
+    const countEl   = document.getElementById('visibleCount');
+
+    let activeSystem = '';
+    let searchTerm   = '';
+
+    function filter() {
+        let visible = 0;
+        cards.forEach(function (card) {
+            const sys  = card.dataset.system || '';
+            const name = card.dataset.name  || '';
+            const matchSys  = !activeSystem || sys === activeSystem;
+            const matchSearch = !searchTerm || name.includes(searchTerm) || sys.toLowerCase().includes(searchTerm);
+            const show = matchSys && matchSearch;
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        emptyState.style.display = visible === 0 ? '' : 'none';
+        countEl.textContent = '(' + visible + ')';
+    }
+
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            chips.forEach(function (c) { c.classList.remove('active'); });
+            chip.classList.add('active');
+            activeSystem = chip.dataset.system || '';
+            filter();
+        });
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            searchTerm = this.value.toLowerCase().trim();
+            filter();
+        });
+    }
+
+    filter();
+})();
+</script>
 </body>
 </html>

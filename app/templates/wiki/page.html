@@ -1,136 +1,220 @@
 {% extends "wiki/base.html" %}
 {% block title %}{{ page.title }} — {{ campaign.name }} Wiki{% endblock %}
 
+{# Article uses its own centered grid wrapper — skip the default wiki-container #}
+{% block content_wrapper_class %}{% endblock %}
+
 {% block wiki_hero %}
-<div class="wiki-page-hero {% if page.cover_image_url %}wiki-page-hero--cover{% endif %}"
-     {% if page.cover_image_url %}style="--cover-url:url('{{ page.cover_image_url }}');"{% endif %}>
-    <div class="container-xl px-3 px-md-4">
+<div class="wiki-cover-band">
+    {% if page.cover_image_url %}
+    <div class="wiki-cover-band-bg" style="background-image:url('{{ page.cover_image_url }}');"></div>
+    {% else %}
+    <div class="wiki-cover-band-bg wiki-cover-band-bg--fallback"></div>
+    {% endif %}
+    <div class="wiki-cover-band-scrim"></div>
+
+    {% if is_staff %}
+    <a class="wiki-cover-edit-btn"
+       href="{{ url_for('wiki.edit_page', campaign_slug=campaign.slug, page_slug=page.slug) }}">
+        <i class="bi bi-pencil"></i> Edit page
+    </a>
+    {% endif %}
+
+    <div class="wiki-cover-band-content">
         <nav aria-label="breadcrumb">
-            <ol class="breadcrumb wiki-breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}">Wiki</a></li>
+            <ol class="wiki-breadcrumb">
+                <li><a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}">Wiki</a></li>
                 {% if page.category %}
                 {% set cat = wiki_categories | selectattr('slug', 'equalto', page.category) | first %}
                 {% if cat %}
-                <li class="breadcrumb-item">
-                    <a href="{{ url_for('wiki.category', campaign_slug=campaign.slug, category=page.category) }}">{{ cat.name }}</a>
-                </li>
+                <li><a href="{{ url_for('wiki.category', campaign_slug=campaign.slug, category=page.category) }}">{{ cat.name }}</a></li>
                 {% endif %}
                 {% endif %}
-                <li class="breadcrumb-item active">{{ page.title }}</li>
+                <li class="active">{{ page.title }}</li>
             </ol>
         </nav>
-        <h1 class="wiki-page-hero-title mb-0">{{ page.title }}</h1>
-        {% if page.summary %}<p class="wiki-page-hero-summary mt-2 mb-0">{{ page.summary }}</p>{% endif %}
+        {% if page.category %}
+        {% set cat = wiki_categories | selectattr('slug', 'equalto', page.category) | first %}
+        {% if cat %}<span class="wiki-cover-band-cat">{{ cat.name }}</span>{% endif %}
+        {% endif %}
+        <h1 class="wiki-cover-band-title">{{ page.title }}</h1>
     </div>
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="row g-4">
-
-{# ── Main content ── #}
-<div class="col-lg-{% if is_staff %}8{% else %}12{% endif %}">
-
-    {# Status banners for non-active pages #}
+{# Status / source banners #}
+{% if page.status in ('draft', 'upcoming', 'archived') or page.source == 'notion' %}
+<div class="wiki-container pt-3">
     {% if page.status == 'draft' %}
-    <div class="alert alert-secondary d-flex align-items-center gap-2">
+    <div class="wiki-status-alert wiki-status-alert--draft">
         <i class="bi bi-pencil-square"></i>
         <span>This page is a <strong>draft</strong> — only visible to staff.</span>
     </div>
     {% elif page.status == 'upcoming' %}
-    <div class="alert alert-info d-flex align-items-center gap-2">
+    <div class="wiki-status-alert wiki-status-alert--upcoming">
         <i class="bi bi-hourglass-split"></i>
         <span>This page is marked <strong>upcoming</strong> — content may change.</span>
     </div>
     {% elif page.status == 'archived' %}
-    <div class="alert alert-dark d-flex align-items-center gap-2">
+    <div class="wiki-status-alert wiki-status-alert--archived">
         <i class="bi bi-archive"></i>
         <span>This page is <strong>archived</strong> — only visible to staff.</span>
     </div>
     {% endif %}
-
-    {# Notion source banner #}
     {% if page.source == 'notion' %}
-    <div class="alert alert-secondary py-2 d-flex align-items-center gap-2 small">
+    <div class="wiki-status-alert" style="border-left:3px solid var(--border-strong);">
         <i class="bi bi-arrow-repeat"></i>
-        Synced from Notion.
-        {% if is_staff %}<span class="text-muted">Manual edits will be overwritten on next sync.</span>{% endif %}
+        <span>Synced from Notion.{% if is_staff %} Manual edits will be overwritten on next sync.{% endif %}</span>
     </div>
     {% endif %}
-
-    <div class="wiki-body-content">
-        {{ body_html }}
-    </div>
-
-    <div class="wiki-page-meta mt-5 pt-4 border-top border-secondary border-opacity-25 text-muted small d-flex flex-wrap gap-3">
-        <span><i class="bi bi-clock me-1"></i>Updated {{ page.updated_at.strftime('%b %d, %Y') if page.updated_at else 'unknown' }}</span>
-        {% if page.updated_by %}<span><i class="bi bi-person me-1"></i>{{ page.updated_by }}</span>{% endif %}
-        {% if page.source == 'notion' %}<span><i class="bi bi-arrow-repeat me-1"></i>Notion</span>{% endif %}
-    </div>
-</div>
-
-{# ── Staff sidebar ── #}
-{% if is_staff %}
-<div class="col-lg-4">
-    <div class="wiki-staff-sidebar">
-        <div class="wiki-staff-sidebar-header">
-            <i class="bi bi-shield-lock me-2 text-muted"></i>Staff Controls
-        </div>
-
-        {# Edit button #}
-        <div class="wiki-staff-sidebar-section">
-            <a href="{{ url_for('wiki.edit_page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
-               class="btn btn-sm btn-outline-primary w-100">
-                <i class="bi bi-pencil me-1"></i>Edit Page
-            </a>
-        </div>
-
-        {# Status picker #}
-        <div class="wiki-staff-sidebar-section">
-            <div class="wiki-staff-sidebar-label">Status</div>
-            <form method="post"
-                  action="{{ url_for('wiki.set_status', campaign_slug=campaign.slug, page_slug=page.slug) }}"
-                  class="d-flex gap-2">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <select name="status" class="form-select form-select-sm flex-grow-1">
-                    {% for s in wiki_statuses %}
-                    <option value="{{ s }}" {% if page.status == s %}selected{% endif %}>
-                        {{ wiki_status_labels[s] }}
-                    </option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Apply">
-                    <i class="bi bi-check-lg"></i>
-                </button>
-            </form>
-        </div>
-
-        {# Page info #}
-        <div class="wiki-staff-sidebar-section wiki-staff-sidebar-meta">
-            {% if page.category %}
-            <div><span class="wiki-staff-meta-label">Category</span>
-                {% set cat = wiki_categories | selectattr('slug', 'equalto', page.category) | first %}
-                {{ cat.name if cat else page.category }}
-            </div>
-            {% endif %}
-            <div><span class="wiki-staff-meta-label">Slug</span><code class="small">{{ page.slug }}</code></div>
-            <div><span class="wiki-staff-meta-label">Source</span>{{ page.source or 'manual' }}</div>
-        </div>
-
-        {# Delete #}
-        <div class="wiki-staff-sidebar-section mt-2">
-            <form method="post"
-                  action="{{ url_for('wiki.delete_page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
-                  onsubmit="return confirm('Delete &quot;{{ page.title }}&quot;? This cannot be undone.')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                    <i class="bi bi-trash me-1"></i>Delete Page
-                </button>
-            </form>
-        </div>
-    </div>
 </div>
 {% endif %}
 
+{# Article layout: body + TOC #}
+<div class="wiki-article-wrap">
+
+    {# ── Main body column ── #}
+    <div class="wiki-article-body">
+        {% if page.summary %}
+        <p class="wiki-article-lead">{{ page.summary }}</p>
+        {% endif %}
+
+        <div class="wiki-article-meta">
+            {% if page.updated_at %}
+            <span><i class="bi bi-clock"></i> Updated {{ page.updated_at.strftime('%b %d, %Y') }}</span>
+            {% endif %}
+            {% if page.updated_by %}
+            <span><i class="bi bi-person"></i> {{ page.updated_by }}</span>
+            {% endif %}
+        </div>
+
+        <div class="wiki-body-content" id="articleBody">
+            {{ body_html }}
+        </div>
+
+        <div class="wiki-page-meta-strip">
+            {% if page.updated_at %}
+            <span><i class="bi bi-clock"></i> {{ page.updated_at.strftime('%b %d, %Y') }}</span>
+            {% endif %}
+            {% if page.updated_by %}
+            <span><i class="bi bi-person"></i> {{ page.updated_by }}</span>
+            {% endif %}
+            {% if page.source == 'notion' %}
+            <span><i class="bi bi-arrow-repeat"></i> Notion</span>
+            {% endif %}
+            {% if is_staff %}
+            <a href="{{ url_for('wiki.edit_page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
+               class="btn-ghost ms-auto" style="font-size:12px;padding:5px 12px;">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── TOC + sidebar column ── #}
+    <aside class="wiki-toc" id="articleToc">
+        {# TOC — built from h2/h1 headings in body #}
+        <div class="wiki-toc-label">On this page</div>
+        <ul class="wiki-toc-list" id="tocList">
+            {# Populated by JS below #}
+        </ul>
+
+        {# Staff controls panel #}
+        {% if is_staff %}
+        <div class="wiki-staff-sidebar mt-3">
+            <div class="wiki-staff-sidebar-header">
+                <i class="bi bi-shield-lock"></i> Staff
+            </div>
+            <div class="wiki-staff-sidebar-section">
+                <a href="{{ url_for('wiki.edit_page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
+                   class="btn-accent w-100" style="justify-content:center;">
+                    <i class="bi bi-pencil"></i> Edit Page
+                </a>
+            </div>
+            <div class="wiki-staff-sidebar-section">
+                <div class="wiki-staff-sidebar-label">Status</div>
+                <form method="post"
+                      action="{{ url_for('wiki.set_status', campaign_slug=campaign.slug, page_slug=page.slug) }}"
+                      class="d-flex gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="status" class="form-select form-select-sm flex-grow-1"
+                            style="background:var(--surface-2);border-color:var(--border-strong);color:var(--text);border-radius:8px;font-size:12px;">
+                        {% for s in wiki_statuses %}
+                        <option value="{{ s }}" {% if page.status == s %}selected{% endif %}>{{ wiki_status_labels[s] }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-ghost" style="padding:5px 10px;" title="Apply">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="wiki-staff-sidebar-section wiki-staff-sidebar-meta">
+                {% if page.category %}
+                {% set cat = wiki_categories | selectattr('slug', 'equalto', page.category) | first %}
+                <div><span class="wiki-staff-meta-label">Category</span>{{ cat.name if cat else page.category }}</div>
+                {% endif %}
+                <div><span class="wiki-staff-meta-label">Slug</span><code style="font-size:11px;color:var(--text-muted);">{{ page.slug }}</code></div>
+                <div><span class="wiki-staff-meta-label">Source</span>{{ page.source or 'manual' }}</div>
+            </div>
+            <div class="wiki-staff-sidebar-section">
+                <form method="post"
+                      action="{{ url_for('wiki.delete_page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
+                      onsubmit="return confirm('Delete &quot;{{ page.title }}&quot;? This cannot be undone.')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-ghost w-100" style="color:#f87171;border-color:rgba(248,113,113,.3);">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    // Build TOC from article headings
+    const body    = document.getElementById('articleBody');
+    const tocList = document.getElementById('tocList');
+    if (!body || !tocList) return;
+
+    const headings = body.querySelectorAll('h1, h2');
+    if (!headings.length) {
+        document.getElementById('articleToc').style.display = 'none';
+        return;
+    }
+
+    headings.forEach(function (h, i) {
+        if (!h.id) h.id = 'section-' + i;
+        const li = document.createElement('li');
+        const a  = document.createElement('a');
+        a.href        = '#' + h.id;
+        a.textContent = h.textContent;
+        a.dataset.id  = h.id;
+        li.appendChild(a);
+        tocList.appendChild(li);
+    });
+
+    // Scroll-spy
+    const tocLinks = tocList.querySelectorAll('a[data-id]');
+    const map = {};
+    tocLinks.forEach(function (a) { map[a.dataset.id] = a; });
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                tocLinks.forEach(function (a) { a.classList.remove('toc-active'); });
+                const link = map[entry.target.id];
+                if (link) link.classList.add('toc-active');
+            }
+        });
+    }, { rootMargin: '-10% 0px -80% 0px' });
+
+    headings.forEach(function (h) { observer.observe(h); });
+})();
+</script>
 {% endblock %}

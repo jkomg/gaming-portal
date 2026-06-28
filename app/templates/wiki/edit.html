@@ -6,108 +6,127 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center gap-3 mb-4">
-    {% if page %}
-    <a href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
-       class="text-muted text-decoration-none">← Back to page</a>
-    <h1 class="h4 mb-0">Edit: {{ page.title }}</h1>
-    {% else %}
-    <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}"
-       class="text-muted text-decoration-none">← Wiki</a>
-    <h1 class="h4 mb-0">New Page</h1>
-    {% endif %}
+<div class="wiki-editor-header">
+    <div class="wiki-editor-header-left">
+        <span class="wiki-editor-kicker">{% if page %}Editing{% else %}New entry{% endif %}</span>
+        <h1 class="wiki-editor-title" id="editorTitleDisplay">
+            {{ page.title if page else 'Untitled' }}
+        </h1>
+    </div>
+    <div class="wiki-editor-actions">
+        {% if page %}
+        <a href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=page.slug) }}" class="btn-ghost">
+            <i class="bi bi-x"></i> Cancel
+        </a>
+        {% else %}
+        <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}" class="btn-ghost">
+            <i class="bi bi-x"></i> Cancel
+        </a>
+        {% endif %}
+        <button type="submit" form="editForm" class="btn-accent">
+            <i class="bi bi-check-lg"></i>
+            {% if page %}Save changes{% else %}Publish{% endif %}
+        </button>
+    </div>
 </div>
 
-<form method="POST"
+<form id="editForm" method="POST"
       action="{% if page %}{{ url_for('wiki.edit_page', campaign_slug=campaign.slug, page_slug=page.slug) }}{% else %}{{ url_for('wiki.new_page', campaign_slug=campaign.slug) }}{% endif %}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="row g-4">
-    <div class="col-lg-8">
+        <div class="col-lg-8">
 
-        <div class="mb-3">
-            <label class="form-label">Title</label>
-            <input type="text" class="form-control" name="title"
-                   value="{{ page.title if page else '' }}" required autofocus>
+            <div class="mb-3">
+                <label class="wiki-form-label" for="titleInput">Title</label>
+                <input type="text" class="form-control wiki-form-control" id="titleInput" name="title"
+                       value="{{ page.title if page else '' }}" required autofocus
+                       placeholder="Page title…">
+            </div>
+
+            {% if not page %}
+            <div class="mb-3">
+                <label class="wiki-form-label" for="slugInput">
+                    Slug <span style="font-weight:400;color:var(--text-faintest);">(auto-generated from title if blank)</span>
+                </label>
+                <input type="text" class="form-control wiki-form-control font-monospace" id="slugInput" name="slug"
+                       pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, hyphens only"
+                       placeholder="e.g. elysium-court" style="font-size:13px;">
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label class="wiki-form-label" for="summaryInput">Summary <span style="font-weight:400;color:var(--text-faintest);">(shown on cards)</span></label>
+                <input type="text" class="form-control wiki-form-control" id="summaryInput" name="summary"
+                       value="{{ page.summary if page else '' }}"
+                       placeholder="One-sentence teaser…">
+            </div>
+
+            <div class="mb-3">
+                <label class="wiki-form-label" for="body_markdown">Body</label>
+                <textarea class="form-control wiki-form-control" name="body_markdown" id="body_markdown"
+                          rows="20">{{ page.body_markdown if page else '' }}</textarea>
+            </div>
+
         </div>
+        <div class="col-lg-4">
 
-        {% if not page %}
-        <div class="mb-3">
-            <label class="form-label">
-                Slug <span class="text-muted small">(leave blank to auto-generate from title)</span>
-            </label>
-            <input type="text" class="form-control font-monospace" name="slug"
-                   pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, hyphens only"
-                   placeholder="e.g. saint-lazarus">
-        </div>
-        {% endif %}
+            <div class="wiki-settings-card">
+                <div class="wiki-settings-card-header">Page settings</div>
+                <div class="wiki-settings-card-body">
 
-        <div class="mb-3">
-            <label class="form-label">Summary <span class="text-muted small">(shown on cards)</span></label>
-            <input type="text" class="form-control" name="summary"
-                   value="{{ page.summary if page else '' }}"
-                   placeholder="One-sentence teaser…">
-        </div>
+                    <div>
+                        <label class="wiki-form-label" for="statusSelect">Status</label>
+                        <select class="form-select wiki-form-control" id="statusSelect" name="status"
+                                style="padding:9px 14px;">
+                            {% for s in wiki_statuses %}
+                            <option value="{{ s }}"
+                                    {% if page and page.status == s %}selected
+                                    {% elif not page and s == 'active' %}selected{% endif %}>
+                                {{ wiki_status_labels[s] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Body</label>
-            <textarea class="form-control" name="body_markdown" id="body_markdown"
-                      rows="20">{{ page.body_markdown if page else '' }}</textarea>
-        </div>
+                    <div>
+                        <label class="wiki-form-label" for="categorySelect">Category</label>
+                        <select class="form-select wiki-form-control" id="categorySelect" name="category"
+                                style="padding:9px 14px;">
+                            <option value="">— Uncategorized —</option>
+                            {% for cat in wiki_categories %}
+                            <option value="{{ cat.slug }}"
+                                    {% if page and page.category == cat.slug %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-    </div>
-    <div class="col-lg-4">
+                    <div>
+                        <label class="wiki-form-label" for="coverInput">Cover image URL</label>
+                        <input type="text" class="form-control wiki-form-control" id="coverInput" name="cover_image_url"
+                               value="{{ page.cover_image_url if page else '' }}"
+                               placeholder="/static/img/slug.png">
+                    </div>
 
-        <div class="card mb-3" style="background:#161b22;border:1px solid rgba(255,255,255,0.1);">
-            <div class="card-header fw-semibold">Page Settings</div>
-            <div class="card-body row g-3">
-                <div class="col-12">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" name="status">
-                        {% for s in wiki_statuses %}
-                        <option value="{{ s }}"
-                                {% if page and page.status == s %}selected
-                                {% elif not page and s == 'active' %}selected{% endif %}>
-                            {{ wiki_status_labels[s] }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Category</label>
-                    <select class="form-select" name="category">
-                        <option value="">— Uncategorized —</option>
-                        {% for cat in wiki_categories %}
-                        <option value="{{ cat.slug }}"
-                                {% if page and page.category == cat.slug %}selected{% endif %}>
-                            {{ cat.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Cover Image URL</label>
-                    <input type="text" class="form-control" name="cover_image_url"
-                           value="{{ page.cover_image_url if page else '' }}"
-                           placeholder="/static/img/slug.png">
                 </div>
             </div>
-        </div>
 
-        <div class="d-flex gap-2">
-            {% if page %}
-            <a href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
-               class="btn btn-outline-secondary flex-fill">Cancel</a>
-            {% else %}
-            <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}"
-               class="btn btn-outline-secondary flex-fill">Cancel</a>
-            {% endif %}
-            <button type="submit" class="btn btn-primary flex-fill">
-                {% if page %}Save Changes{% else %}Create Page{% endif %}
-            </button>
-        </div>
+            <div class="d-flex gap-2 mt-2">
+                {% if page %}
+                <a href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=page.slug) }}"
+                   class="btn-ghost flex-fill" style="justify-content:center;">Cancel</a>
+                {% else %}
+                <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}"
+                   class="btn-ghost flex-fill" style="justify-content:center;">Cancel</a>
+                {% endif %}
+                <button type="submit" class="btn-accent flex-fill" style="justify-content:center;">
+                    {% if page %}Save changes{% else %}Publish{% endif %}
+                </button>
+            </div>
 
-    </div>
+        </div>
     </div>
 </form>
 {% endblock %}
@@ -118,7 +137,11 @@
 new EasyMDE({
     element: document.getElementById('body_markdown'),
     spellChecker: false,
-    autosave: { enabled: true, uniqueId: 'wiki-edit-{{ page.slug if page else "new" }}', delay: 5000 },
+    autosave: {
+        enabled: true,
+        uniqueId: 'wiki-edit-{{ page.slug if page else "new" }}',
+        delay: 5000,
+    },
     toolbar: [
         'bold','italic','strikethrough','|',
         'heading-1','heading-2','heading-3','|',
@@ -131,5 +154,14 @@ new EasyMDE({
     renderingConfig: { singleLineBreaks: false },
     minHeight: '400px',
 });
+
+// Live title preview in header
+const titleInput   = document.getElementById('titleInput');
+const titleDisplay = document.getElementById('editorTitleDisplay');
+if (titleInput && titleDisplay) {
+    titleInput.addEventListener('input', function () {
+        titleDisplay.textContent = this.value || 'Untitled';
+    });
+}
 </script>
 {% endblock %}

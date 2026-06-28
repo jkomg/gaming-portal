@@ -1,0 +1,64 @@
+{% extends "wiki/base.html" %}
+{% block title %}Not Found — {{ campaign.name }} Wiki{% endblock %}
+
+{% block content_wrapper_class %}{% endblock %}
+
+{% block content %}
+<div class="wiki-404-wrap">
+
+    {# Blood-moon motif #}
+    <div class="wiki-404-moon"></div>
+
+    <p class="wiki-404-kicker">Page not found · 404</p>
+
+    <h1 class="wiki-404-title">
+        {% if missing_slug %}
+        &ldquo;{{ missing_slug | replace('-', ' ') | title }}&rdquo; has not been written
+        {% else %}
+        This page has not been written
+        {% endif %}
+    </h1>
+
+    <p class="wiki-404-body">
+        The chronicle holds no record of this entry — yet. It may be unwritten,
+        renamed, or still in shadow.
+    </p>
+
+    <div class="wiki-404-actions">
+        <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}" class="btn-accent">
+            <i class="bi bi-house"></i> Return home
+        </a>
+        <a href="{{ url_for('wiki.search', campaign_slug=campaign.slug) }}{% if missing_slug %}?q={{ missing_slug | replace('-', ' ') }}{% endif %}"
+           class="btn-ghost">
+            <i class="bi bi-search"></i> Search instead
+        </a>
+        {% if is_staff %}
+        <a href="{{ url_for('wiki.new_page', campaign_slug=campaign.slug) }}" class="btn-ghost"
+           style="border-color:color-mix(in srgb,var(--accent) 40%,transparent);color:var(--accent-soft);">
+            <i class="bi bi-plus"></i> Create this page
+        </a>
+        {% endif %}
+    </div>
+
+    {% if suggestions %}
+    <p class="section-label mb-3">Recently updated</p>
+    <div class="wiki-404-suggestions">
+        {% for p in suggestions %}
+        <a class="wiki-page-card"
+           href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=p.slug) }}">
+            {% if p.cover_image_url %}
+            <div class="wiki-card-cover" style="background-image:url('{{ p.cover_image_url }}');height:80px;"></div>
+            {% else %}
+            <div class="wiki-card-cover wiki-card-cover--fallback" style="height:80px;"></div>
+            {% endif %}
+            <div class="wiki-card-body" style="padding:12px 14px;">
+                <h5 style="font-size:14px;">{{ p.title }}</h5>
+                {% if p.summary %}<div class="wiki-card-summary" style="font-size:12px;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;">{{ p.summary }}</div>{% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,77 +8,105 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
-<body>
 
-<div class="portal-hero" style="height:280px;">
-    {% if campaign.cover_image_url %}
-    <img src="{{ campaign.cover_image_url }}" alt="" class="portal-hero-img">
-    {% else %}
-    <div style="width:100%;height:100%;background:linear-gradient(135deg,#12121e 0%,#1a1a30 100%);"></div>
-    {% endif %}
-    <div class="portal-hero-overlay">
-        <h1>{{ campaign.name }}</h1>
-        <p class="portal-subtitle">{{ campaign.system }}</p>
-    </div>
-    <div class="portal-hero-nav">
-        <a href="{{ url_for('portal.index') }}" class="btn btn-sm btn-outline-light me-2">
-            <i class="bi bi-house me-1"></i>All Campaigns
+{% set _accent_map = {
+    'mcbn':  ('#d83a4a', '#ff8a96'),
+    'gotw':  ('#6d6cf5', '#a9a8ff'),
+    'vecna': ('#a64dff', '#c89bff'),
+    'keys':  ('#d4b352', '#ecd58a'),
+} %}
+{% set _ac = _accent_map.get(campaign.slug, ('#d83a4a', '#ff8a96')) %}
+
+<body class="portal-body" style="--accent:{{ _ac[0] }};--accent-soft:{{ _ac[1] }};">
+
+{# Top bar #}
+<header>
+    <div class="portal-topbar">
+        <a class="portal-brand" href="{{ url_for('portal.index') }}">
+            <div class="portal-brand-mark"></div>
+            <div class="portal-brand-text">
+                <span class="portal-brand-name">jkomg gaming</span>
+                <span class="portal-brand-kicker">Campaign Chronicles</span>
+            </div>
         </a>
-        {% if is_staff %}
-        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-outline-light me-2">
-            <i class="bi bi-gear me-1"></i>Admin
-        </a>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-light">
-            <i class="bi bi-box-arrow-right"></i>
-        </a>
-        {% endif %}
-    </div>
-</div>
-
-<div class="container py-5">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for cat, msg in messages %}
-    <div class="alert alert-{{ cat }} alert-dismissible fade show">
-        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-    {% endwith %}
-
-    <div class="row justify-content-center">
-    <div class="col-lg-8">
-
-        <div class="mb-2">
-            <span class="badge campaign-status-badge status-{{ campaign.status }}">
-                {{ status_labels.get(campaign.status, campaign.status) }}
-            </span>
-        </div>
-
-        {% if campaign.description %}
-        <p class="lead text-muted mb-4">{{ campaign.description }}</p>
-        {% endif %}
-
-        <div class="d-flex flex-wrap gap-3">
-            {% if campaign.wiki_url %}
-            <a href="{{ campaign.wiki_url }}" class="btn btn-primary" target="_blank" rel="noopener">
-                <i class="bi bi-journal-richtext me-2"></i>Open Wiki
-                <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+        <div class="portal-topbar-right">
+            {% if is_staff %}
+            <a href="{{ url_for('admin.index') }}" class="portal-staff-chip">
+                <i class="bi bi-gear" style="font-size:12px;"></i> Admin
             </a>
-            {% elif campaign.wiki_enabled %}
-            <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}" class="btn btn-primary">
-                <i class="bi bi-journal-richtext me-2"></i>Browse Wiki
+            <a href="{{ url_for('auth.logout') }}" class="portal-staff-chip">
+                <i class="bi bi-box-arrow-right" style="font-size:12px;"></i>
             </a>
             {% endif %}
-            <a href="{{ url_for('portal.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i>All Campaigns
+            <a href="{{ url_for('portal.index') }}" class="portal-staff-chip">
+                <i class="bi bi-arrow-left" style="font-size:12px;"></i> All campaigns
             </a>
         </div>
+    </div>
+</header>
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div style="max-width:1300px;margin:0 auto;padding:0 40px 0;">
+    {% for cat, msg in messages %}
+    <div class="alert alert-{{ cat }} alert-dismissible fade show" style="background:var(--surface);border:1px solid var(--border-strong);color:var(--text);border-radius:12px;font-size:14px;">
+        {{ msg }}<button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
     </div>
-    </div>
+    {% endfor %}
 </div>
+{% endif %}
+{% endwith %}
 
-<footer class="footer text-center py-3">
-    <small>jkomg.us &mdash; all campaigns &mdash; all worlds &mdash; created by <a href="mailto:jay@jkomg.us">jkomg</a></small>
+{# Campaign spotlight — same panel as portal index featured #}
+<section class="portal-spotlight-wrap" style="margin-bottom:0;padding-bottom:60px;">
+    <div class="portal-spotlight">
+        <div class="portal-spotlight-text">
+            <div class="portal-spotlight-kicker">
+                <span class="portal-spotlight-kicker-dot"
+                      style="background:{{ _ac[0] }};box-shadow:0 0 8px {{ _ac[0] }}88;"></span>
+                {{ campaign.system }}
+            </div>
+            <h1 class="portal-spotlight-title">{{ campaign.name }}</h1>
+            {% if campaign.description %}
+            <p class="portal-spotlight-desc">{{ campaign.description }}</p>
+            {% endif %}
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+                {% if campaign.effective_wiki_url %}
+                <a href="{{ campaign.effective_wiki_url }}" class="portal-spotlight-cta"
+                   style="background:{{ _ac[0] }};" target="_blank" rel="noopener">
+                    <i class="bi bi-journal-richtext"></i> Open Wiki
+                </a>
+                {% elif campaign.wiki_enabled %}
+                <a href="{{ url_for('wiki.index', campaign_slug=campaign.slug) }}"
+                   class="portal-spotlight-cta" style="background:{{ _ac[0] }};">
+                    <i class="bi bi-journal-richtext"></i> Enter the wiki →
+                </a>
+                {% endif %}
+                <a href="{{ url_for('portal.index') }}" class="btn-ghost">
+                    <i class="bi bi-arrow-left"></i> All campaigns
+                </a>
+            </div>
+
+            <div style="margin-top:16px;">
+                <span class="portal-campaign-status-pill portal-status-{{ campaign.status }}"
+                      style="position:static;display:inline-block;">
+                    {{ status_labels.get(campaign.status, campaign.status) }}
+                </span>
+            </div>
+        </div>
+        <div class="portal-spotlight-img">
+            {% if campaign.cover_image_url %}
+            <img src="{{ campaign.cover_image_url }}" alt="{{ campaign.name }}">
+            {% else %}
+            <div style="width:100%;height:100%;background:repeating-linear-gradient(45deg,#1a1d23 0 14px,#141519 14px 28px);"></div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<footer class="portal-footer">
+    <small>jkomg.us &mdash; all campaigns &mdash; all worlds</small>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

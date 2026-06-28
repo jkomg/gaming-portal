@@ -1,29 +1,106 @@
 {% extends "wiki/base.html" %}
 {% block title %}{{ campaign.name }} Wiki{% endblock %}
 
-{% block wiki_hero %}
-<div class="wiki-index-hero" {% if campaign.cover_image_url %}style="--cover-url:url('{{ campaign.cover_image_url }}');"{% endif %}>
-    <div class="container-xl px-3 px-md-4">
-        <h1 class="wiki-index-title">{{ campaign.name }}</h1>
-        <p class="wiki-index-subtitle">{{ campaign.system }}</p>
-    </div>
-</div>
-{% endblock %}
-
 {% block content %}
-<section class="mb-5">
-    <h2 class="wiki-section-heading mb-4">Browse by Category</h2>
-    <div class="row g-3">
-        {% for cat in wiki_categories %}
-        <div class="col-6 col-md-4 col-lg-3">
-            <a href="{{ url_for('wiki.category', campaign_slug=campaign.slug, category=cat.slug) }}"
-               class="wiki-category-card text-decoration-none">
-                <div class="cat-icon"><i class="bi {{ cat.icon }}"></i></div>
-                <h3>{{ cat.name }}</h3>
-                <div class="count">{{ counts.get(cat.slug, 0) }} page{{ 's' if counts.get(cat.slug, 0) != 1 }}</div>
-            </a>
+<div class="wiki-home">
+
+    {# ── Magazine hero split ── #}
+    {% set featured = recent[0] if recent else none %}
+    <div class="wiki-hero-split">
+
+        {# Left: featured card #}
+        {% if featured %}
+        <a class="wiki-hero-featured"
+           href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=featured.slug) }}">
+            {% if featured.cover_image_url %}
+            <div class="wiki-hero-featured-bg" style="background-image:url('{{ featured.cover_image_url }}');"></div>
+            {% else %}
+            <div class="wiki-hero-featured-bg" style="background:repeating-linear-gradient(45deg,#1a1d23 0 16px,#141519 16px 32px);"></div>
+            {% endif %}
+            <div class="wiki-hero-featured-scrim"></div>
+            <div class="wiki-hero-featured-content">
+                {% set feat_cat = wiki_categories | selectattr('slug', 'equalto', featured.category) | first %}
+                <div class="wiki-hero-featured-badge">
+                    Featured · {{ feat_cat.name if feat_cat else (featured.category | title if featured.category else 'Wiki') }}
+                </div>
+                <h2 class="wiki-hero-featured-title">{{ featured.title }}</h2>
+                {% if featured.summary %}
+                <p class="wiki-hero-featured-summary">{{ featured.summary }}</p>
+                {% endif %}
+            </div>
+        </a>
+        {% else %}
+        <div class="wiki-hero-featured" style="min-height:340px;">
+            <div class="wiki-hero-featured-bg" style="background:repeating-linear-gradient(45deg,#1a1d23 0 16px,#141519 16px 32px);{% if campaign.cover_image_url %}background-image:url('{{ campaign.cover_image_url }}');{% endif %}"></div>
+            <div class="wiki-hero-featured-scrim"></div>
+            <div class="wiki-hero-featured-content">
+                <div class="wiki-hero-featured-badge">{{ campaign.name }}</div>
+                <h2 class="wiki-hero-featured-title">Welcome to the Chronicle</h2>
+                <p class="wiki-hero-featured-summary">{{ campaign.description }}</p>
+            </div>
         </div>
-        {% endfor %}
+        {% endif %}
+
+        {# Right: Browse panel + Latest card #}
+        <div class="wiki-hero-right">
+            <div class="wiki-browse-panel">
+                <div class="wiki-browse-panel-header">Browse the domain</div>
+                {% for cat in wiki_categories %}
+                <a class="wiki-browse-row"
+                   href="{{ url_for('wiki.category', campaign_slug=campaign.slug, category=cat.slug) }}">
+                    <span class="wiki-browse-row-name">{{ cat.name }}</span>
+                    <span class="wiki-browse-row-count">{{ counts.get(cat.slug, 0) }}</span>
+                </a>
+                {% endfor %}
+            </div>
+
+            {# Latest: second recent entry (skip featured) #}
+            {% set latest = recent[1] if recent | length > 1 else none %}
+            {% if latest %}
+            <a class="wiki-latest-card"
+               href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=latest.slug) }}">
+                <div class="wiki-latest-label">Latest</div>
+                <div class="wiki-latest-title">{{ latest.title }}</div>
+                <div class="wiki-latest-date">
+                    Updated {{ latest.updated_at.strftime('%b %d, %Y') if latest.updated_at else '' }}
+                </div>
+            </a>
+            {% endif %}
+        </div>
     </div>
-</section>
+
+    {# ── Recently updated ── #}
+    {% if recent %}
+    <div class="wiki-recent">
+        <div class="wiki-recent-header">
+            <span class="section-label">Recently updated</span>
+        </div>
+        <div class="row g-3">
+            {% for p in recent %}
+            <div class="col-md-6 col-lg-4">
+                <a class="wiki-page-card {% if p.status in ('archived','draft') %}wiki-page-card--inactive{% endif %}"
+                   href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=p.slug) }}">
+                    {% if p.cover_image_url %}
+                    <div class="wiki-card-cover" style="background-image:url('{{ p.cover_image_url }}');"></div>
+                    {% else %}
+                    <div class="wiki-card-cover wiki-card-cover--fallback"></div>
+                    {% endif %}
+                    <div class="wiki-card-body">
+                        <h5>{{ p.title }}</h5>
+                        {% if p.summary %}<div class="wiki-card-summary">{{ p.summary }}</div>{% endif %}
+                        <div class="wiki-card-meta">
+                            {% set card_cat = wiki_categories | selectattr('slug', 'equalto', p.category) | first %}
+                            {% if card_cat %}<span class="wiki-card-cat-pill">{{ card_cat.name }}</span>{% endif %}
+                            <span>{{ p.updated_at.strftime('%b %d') if p.updated_at else '' }}</span>
+                            {% if p.status == 'draft' %}<span class="wiki-card-cat-pill" style="color:var(--text-muted);background:rgba(255,255,255,.06);border-color:var(--border-strong);">Draft</span>{% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
 {% endblock %}
