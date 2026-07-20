@@ -18,7 +18,6 @@ def _require_staff():
     pass
 
 
-
 @bp.route('/')
 def index():
     campaigns = Campaign.query.order_by(Campaign.sort_order, Campaign.name).all()
