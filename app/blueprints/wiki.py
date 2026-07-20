@@ -22,6 +22,8 @@ def _pull_campaign(endpoint, values):
     slug = values.pop('campaign_slug', None)
     if slug:
         g.campaign = Campaign.query.filter_by(slug=slug).first_or_404()
+        if g.campaign.status == 'draft' and not _is_staff():
+            abort(404)
     else:
         g.campaign = None
 

@@ -6,8 +6,9 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 # Campaign status values
-CAMPAIGN_STATUSES = ('active', 'hiatus', 'complete', 'upcoming')
+CAMPAIGN_STATUSES = ('draft', 'active', 'hiatus', 'complete', 'upcoming')
 CAMPAIGN_STATUS_LABELS = {
+    'draft':    'Draft (staff only)',
     'active':   'Active',
     'hiatus':   'On Hiatus',
     'complete': 'Complete',
