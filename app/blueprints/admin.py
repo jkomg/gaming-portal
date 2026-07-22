@@ -487,6 +487,14 @@ def _upsert_notion_page(notion, page: dict, campaign_id: int,
 
     page_status = 'archived' if archived else 'active'
 
+    # Stamp updated_at with Notion's own last-edited time, not wall-clock now.
+    # The pull path (and this same guard, on the next sync) treat updated_at as
+    # "when was this page's content last known to change" — if sync stamped the
+    # moment it ran instead, every freshly-synced page would look newer than its
+    # Notion source and get needlessly (and lossily) pushed straight back by
+    # `notion_pull`, even though nothing was actually edited in the wiki.
+    sync_stamp = notion_edited_at or datetime.now(timezone.utc)
+
     if existing:
         existing.title           = title
         existing.summary         = summary
@@ -494,7 +502,7 @@ def _upsert_notion_page(notion, page: dict, campaign_id: int,
         existing.cover_image_url = cover_url
         existing.category        = category
         existing.status          = page_status
-        existing.updated_at      = datetime.now(timezone.utc)
+        existing.updated_at      = sync_stamp
         existing.updated_by      = updated_by
         existing.source          = 'notion'
     else:
@@ -515,6 +523,7 @@ def _upsert_notion_page(notion, page: dict, campaign_id: int,
             source='notion',
             notion_page_id=notion_id,
             updated_by=updated_by,
+            updated_at=sync_stamp,
         ))
     db.session.commit()
     return None
