@@ -67,6 +67,13 @@ def create_app() -> Flask:
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(wiki_bp, url_prefix='/<campaign_slug>/wiki')
 
+    # Retired standalone domain — send visitors to the live wiki instead of a dead page.
+    @app.before_request
+    def _redirect_legacy_vecna_domain():
+        from flask import request, redirect
+        if request.host.split(':')[0] == 'vecna.jkomg.us':
+            return redirect('https://gaming.jkomg.us/vecna/wiki/', code=301)
+
     # Global template context
     from .auth import is_staff as _is_staff, is_logged_in as _is_logged_in
     from flask import session

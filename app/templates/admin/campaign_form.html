@@ -120,13 +120,21 @@
 </form>
 
 {% if campaign and campaign.notion_databases %}
-<form method="post" action="{{ url_for('admin.notion_sync', slug=campaign.slug) }}" class="mb-4">
+<form method="post" action="{{ url_for('admin.notion_sync', slug=campaign.slug) }}" class="mb-2">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn-ghost"
             onclick="return confirm('Run Notion sync for {{ campaign.name }}?')">
         <i class="bi bi-arrow-repeat"></i> Run Notion sync now
     </button>
-    <span style="font-size:12px;color:var(--text-faint);margin-left:8px;">Pulls all pages from configured Notion databases</span>
+    <span style="font-size:12px;color:var(--text-faint);margin-left:8px;">Pulls all pages from Notion — pages edited in the wiki more recently than in Notion are skipped automatically.</span>
+</form>
+<form method="post" action="{{ url_for('admin.notion_pull', slug=campaign.slug) }}" class="mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn-ghost"
+            onclick="return confirm('Push any wiki pages newer than their Notion source back to Notion for {{ campaign.name }}? This overwrites the Notion page content.')">
+        <i class="bi bi-arrow-left-right"></i> Pull wiki changes into Notion
+    </button>
+    <span style="font-size:12px;color:var(--text-faint);margin-left:8px;">Reconciles the other direction — overwrites Notion with the wiki's content for any page edited in the wiki since its last Notion edit.</span>
 </form>
 {% endif %}
 
