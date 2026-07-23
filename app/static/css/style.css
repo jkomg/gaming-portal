@@ -314,6 +314,11 @@ a { text-decoration: none; color: inherit; }
   background-position: center;
   background-color: var(--surface-2);
 }
+.wiki-card-cover--portrait {
+  /* Portrait character/NPC art in a short wide card: anchor to the top so
+     faces show instead of getting cropped to a strip through the torso. */
+  background-position: center top;
+}
 .wiki-card-cover--fallback {
   height: 140px;
   background: repeating-linear-gradient(45deg, #1a1d23 0 10px, #141519 10px 20px);

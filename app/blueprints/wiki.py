@@ -329,7 +329,7 @@ def new_page():
         title = request.form.get('title', '').strip()
         if not title:
             flash('Title is required.', 'danger')
-            return redirect(url_for('wiki.new_page'))
+            return redirect(url_for('wiki.new_page', campaign_slug=c.slug))
         base_slug = _slugify(request.form.get('slug', '').strip() or title)
         slug = _unique_slug(c.id, base_slug)
         new_status = request.form.get('status', 'active')
@@ -350,7 +350,7 @@ def new_page():
         db.session.add(p)
         db.session.commit()
         flash(f'Page "{title}" created.', 'success')
-        return redirect(url_for('wiki.page', page_slug=slug))
+        return redirect(url_for('wiki.page', campaign_slug=c.slug, page_slug=slug))
     return render_template('wiki/edit.html', page=None)
 
 
@@ -372,7 +372,7 @@ def edit_page(page_slug):
         p.updated_at = datetime.now(timezone.utc)
         db.session.commit()
         flash(f'Page "{p.title}" saved.', 'success')
-        return redirect(url_for('wiki.page', page_slug=page_slug))
+        return redirect(url_for('wiki.page', campaign_slug=c.slug, page_slug=page_slug))
     return render_template('wiki/edit.html', page=p)
 
 
@@ -390,7 +390,7 @@ def set_status(page_slug):
         p.updated_at = datetime.now(timezone.utc)
         db.session.commit()
         flash(f'"{p.title}" set to {WIKI_STATUS_LABELS[new_status]}.', 'success')
-    return redirect(url_for('wiki.page', page_slug=page_slug))
+    return redirect(url_for('wiki.page', campaign_slug=c.slug, page_slug=page_slug))
 
 
 @bp.route('/delete/<page_slug>', methods=['POST'])
@@ -402,4 +402,4 @@ def delete_page(page_slug):
     db.session.delete(p)
     db.session.commit()
     flash(f'Page "{title}" deleted.', 'success')
-    return redirect(url_for('wiki.index'))
+    return redirect(url_for('wiki.index', campaign_slug=c.slug))
