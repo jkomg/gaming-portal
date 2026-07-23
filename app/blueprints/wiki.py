@@ -225,7 +225,30 @@ def index():
                                .filter_by(campaign_id=c.id, category=cat['slug'])
                                .filter(WikiPage.status.in_(WIKI_PUBLIC_STATUSES))
                                .count())
-    return render_template('wiki/index.html', recent=recent, counts=counts)
+
+    # "Latest Chapter" hero: the highest-numbered chapter currently public,
+    # not just whatever was most recently edited — so it tracks actual story
+    # progress as chapters get unhidden week to week.
+    latest_chapter = None
+    best_num = -1
+    for p in (WikiPage.query
+              .filter_by(campaign_id=c.id, category='chapters')
+              .filter(WikiPage.status.in_(WIKI_PUBLIC_STATUSES)).all()):
+        m = re.match(r'Chapter (\d+)', p.title or '')
+        num = int(m.group(1)) if m else -1
+        if num > best_num:
+            best_num, latest_chapter = num, p
+    if latest_chapter is None and recent:
+        latest_chapter = recent[0]
+
+    subplot_latest = (WikiPage.query
+                       .filter_by(campaign_id=c.id, category='sub-plots')
+                       .filter(WikiPage.status.in_(WIKI_PUBLIC_STATUSES))
+                       .order_by(WikiPage.updated_at.desc())
+                       .first())
+
+    return render_template('wiki/index.html', recent=recent, counts=counts,
+                           latest_chapter=latest_chapter, subplot_latest=subplot_latest)
 
 
 @bp.route('/search')
