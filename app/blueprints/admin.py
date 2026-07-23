@@ -242,20 +242,36 @@ def notion_pull(slug):
 
 
 def _push_wikipage_to_notion(notion, notion_page: dict, wiki_page) -> None:
-    """Overwrite a Notion page's title, cover, and content with the wiki page's."""
+    """Overwrite a Notion page's title, cover art, and content with the wiki page's.
+
+    Cover art is written to BOTH the page cover banner and the "Image URL"
+    property (when the database has one) — sync prefers Image URL as its
+    source of truth, so leaving it stale here would make the next sync
+    silently revert whatever cover was just pushed.
+    """
     title_prop_name = None
+    has_image_url_prop = False
     for name, prop in notion_page.get('properties', {}).items():
         if prop.get('type') == 'title':
             title_prop_name = name
-            break
+        if name == 'Image URL' and prop.get('type') == 'rich_text':
+            has_image_url_prop = True
+
+    cover_url = wiki_page.cover_image_url
+    if cover_url and cover_url.startswith('/'):
+        cover_url = f'https://gaming.jkomg.us{cover_url}'
+
+    properties = {}
+    if title_prop_name:
+        properties[title_prop_name] = {'title': [{'type': 'text', 'text': {'content': wiki_page.title}}]}
+    if cover_url and has_image_url_prop:
+        properties['Image URL'] = {'rich_text': [{'type': 'text', 'text': {'content': cover_url}}]}
 
     update_payload = {}
-    if title_prop_name:
-        update_payload['properties'] = {
-            title_prop_name: {'title': [{'type': 'text', 'text': {'content': wiki_page.title}}]}
-        }
-    if wiki_page.cover_image_url:
-        update_payload['cover'] = {'type': 'external', 'external': {'url': wiki_page.cover_image_url}}
+    if properties:
+        update_payload['properties'] = properties
+    if cover_url:
+        update_payload['cover'] = {'type': 'external', 'external': {'url': cover_url}}
     if update_payload:
         notion.pages.update(page_id=wiki_page.notion_page_id, **update_payload)
 
@@ -471,11 +487,18 @@ def _upsert_notion_page(notion, page: dict, campaign_id: int,
     # Fetch page content (blocks → markdown)
     body_md = _blocks_to_markdown(notion, page['id'])
 
-    # Cover image
+    # Cover image — prefer the "Image URL" property (the established
+    # convention in these databases, e.g. Vecna/Keys NPCs), fall back to the
+    # Notion page's own cover banner if that property isn't set or doesn't
+    # exist.
     cover_url = ''
-    cover = page.get('cover')
-    if cover:
-        cover_url = (cover.get('external') or cover.get('file') or {}).get('url', '')
+    image_url_prop = props.get('Image URL', {})
+    if image_url_prop.get('type') == 'rich_text':
+        cover_url = ''.join(t.get('plain_text', '') for t in image_url_prop.get('rich_text', []))
+    if not cover_url:
+        cover = page.get('cover')
+        if cover:
+            cover_url = (cover.get('external') or cover.get('file') or {}).get('url', '')
 
     # Summary: first non-empty paragraph, truncated
     summary = ''
@@ -485,7 +508,19 @@ def _upsert_notion_page(notion, page: dict, campaign_id: int,
             summary = line[:200]
             break
 
-    page_status = 'archived' if archived else 'active'
+    # "Visible" checkbox (legacy convention from the old standalone Vecna
+    # wiki, still present on most Notion databases) controls draft vs active;
+    # Notion's own archived/trashed flag always wins over it. Databases
+    # without a Visible property at all default to visible=True so campaigns
+    # that never adopted the convention keep their current behavior.
+    visible_prop = props.get('Visible')
+    is_visible = visible_prop.get('checkbox', True) if visible_prop else True
+    if archived:
+        page_status = 'archived'
+    elif not is_visible:
+        page_status = 'draft'
+    else:
+        page_status = 'active'
 
     # Stamp updated_at with Notion's own last-edited time, not wall-clock now.
     # The pull path (and this same guard, on the next sync) treat updated_at as
