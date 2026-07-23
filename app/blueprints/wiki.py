@@ -228,27 +228,44 @@ def index():
 
     # "Latest Chapter" hero: the highest-numbered chapter currently public,
     # not just whatever was most recently edited — so it tracks actual story
-    # progress as chapters get unhidden week to week.
+    # progress as chapters get unhidden week to week. Only applies to
+    # campaigns whose chapters are actually titled "Chapter <N>: ..." —
+    # other campaigns (or chapter titles that don't number like that, e.g.
+    # Keys' heist titles) fall back to the old generic "most recently
+    # updated page" featured card with its category-aware badge.
     latest_chapter = None
     best_num = -1
     for p in (WikiPage.query
               .filter_by(campaign_id=c.id, category='chapters')
               .filter(WikiPage.status.in_(WIKI_PUBLIC_STATUSES)).all()):
         m = re.match(r'Chapter (\d+)', p.title or '')
-        num = int(m.group(1)) if m else -1
-        if num > best_num:
-            best_num, latest_chapter = num, p
-    if latest_chapter is None and recent:
-        latest_chapter = recent[0]
+        if m and int(m.group(1)) > best_num:
+            best_num, latest_chapter = int(m.group(1)), p
+    featured = latest_chapter or (recent[0] if recent else None)
 
-    subplot_latest = (WikiPage.query
-                       .filter_by(campaign_id=c.id, category='sub-plots')
-                       .filter(WikiPage.status.in_(WIKI_PUBLIC_STATUSES))
-                       .order_by(WikiPage.updated_at.desc())
-                       .first())
+    # "Sub-Plots" side card only applies to campaigns actually configured
+    # with a sub-plots category — otherwise its link 404s (category pages
+    # 404 for any slug not in the campaign's wiki_categories), so fall back
+    # to the old "second most recent page" side card instead.
+    has_subplots = any(cat['slug'] == 'sub-plots' for cat in c.wiki_categories)
+    subplot_latest = None
+    if has_subplots:
+        subplot_latest = (WikiPage.query
+                           .filter_by(campaign_id=c.id, category='sub-plots')
+                           .filter(WikiPage.status.in_(WIKI_PUBLIC_STATUSES))
+                           .order_by(WikiPage.updated_at.desc())
+                           .first())
+    latest_fallback = None
+    if not has_subplots:
+        for p in recent:
+            if p is not featured:
+                latest_fallback = p
+                break
 
     return render_template('wiki/index.html', recent=recent, counts=counts,
-                           latest_chapter=latest_chapter, subplot_latest=subplot_latest)
+                           featured=featured, is_latest_chapter=bool(latest_chapter),
+                           has_subplots=has_subplots, subplot_latest=subplot_latest,
+                           latest_fallback=latest_fallback)
 
 
 @bp.route('/search')

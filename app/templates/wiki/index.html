@@ -5,7 +5,6 @@
 <div class="wiki-home">
 
     {# ── Magazine hero split ── #}
-    {% set featured = latest_chapter %}
     <div class="wiki-hero-split">
 
         {# Left: featured card #}
@@ -19,7 +18,14 @@
             {% endif %}
             <div class="wiki-hero-featured-scrim"></div>
             <div class="wiki-hero-featured-content">
+                {% if is_latest_chapter %}
                 <div class="wiki-hero-featured-badge">Latest Chapter</div>
+                {% else %}
+                {% set feat_cat = wiki_categories | selectattr('slug', 'equalto', featured.category) | first %}
+                <div class="wiki-hero-featured-badge">
+                    Featured · {{ feat_cat.name if feat_cat else (featured.category | title if featured.category else 'Wiki') }}
+                </div>
+                {% endif %}
                 <h2 class="wiki-hero-featured-title">{{ featured.title }}</h2>
                 {% if featured.summary %}
                 <p class="wiki-hero-featured-summary">{{ featured.summary }}</p>
@@ -51,22 +57,34 @@
                 {% endfor %}
             </div>
 
-            {# Sub-Plots: latest entry in the sub-plots category, if any #}
-            {% if subplot_latest %}
+            {# Sub-Plots (campaigns configured with that category) or the
+               old "Latest" fallback card (everyone else) #}
+            {% if has_subplots %}
+                {% if subplot_latest %}
+                <a class="wiki-latest-card"
+                   href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=subplot_latest.slug) }}">
+                    <div class="wiki-latest-label">Sub-Plots</div>
+                    <div class="wiki-latest-title">{{ subplot_latest.title }}</div>
+                    <div class="wiki-latest-date">
+                        Updated {{ subplot_latest.updated_at.strftime('%b %d, %Y') if subplot_latest.updated_at else '' }}
+                    </div>
+                </a>
+                {% else %}
+                <a class="wiki-latest-card"
+                   href="{{ url_for('wiki.category', campaign_slug=campaign.slug, category='sub-plots') }}">
+                    <div class="wiki-latest-label">Sub-Plots</div>
+                    <div class="wiki-latest-title">No sub-plots yet</div>
+                    <div class="wiki-latest-date">Add one from the wiki</div>
+                </a>
+                {% endif %}
+            {% elif latest_fallback %}
             <a class="wiki-latest-card"
-               href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=subplot_latest.slug) }}">
-                <div class="wiki-latest-label">Sub-Plots</div>
-                <div class="wiki-latest-title">{{ subplot_latest.title }}</div>
+               href="{{ url_for('wiki.page', campaign_slug=campaign.slug, page_slug=latest_fallback.slug) }}">
+                <div class="wiki-latest-label">Latest</div>
+                <div class="wiki-latest-title">{{ latest_fallback.title }}</div>
                 <div class="wiki-latest-date">
-                    Updated {{ subplot_latest.updated_at.strftime('%b %d, %Y') if subplot_latest.updated_at else '' }}
+                    Updated {{ latest_fallback.updated_at.strftime('%b %d, %Y') if latest_fallback.updated_at else '' }}
                 </div>
-            </a>
-            {% else %}
-            <a class="wiki-latest-card"
-               href="{{ url_for('wiki.category', campaign_slug=campaign.slug, category='sub-plots') }}">
-                <div class="wiki-latest-label">Sub-Plots</div>
-                <div class="wiki-latest-title">No sub-plots yet</div>
-                <div class="wiki-latest-date">Add one from the wiki</div>
             </a>
             {% endif %}
         </div>
