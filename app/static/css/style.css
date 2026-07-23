@@ -315,9 +315,15 @@ a { text-decoration: none; color: inherit; }
   background-color: var(--surface-2);
 }
 .wiki-card-cover--portrait {
-  /* Portrait character/NPC art in a short wide card: anchor to the top so
-     faces show instead of getting cropped to a strip through the torso. */
-  background-position: center top;
+  /* Portrait character/NPC art doesn't have a consistent amount of headroom
+     above the face (some sit right at the top of the frame, some have sky,
+     foliage, or a decorative element above the subject) — so no single
+     background-position anchor crops all of them correctly. Instead, give
+     the box the same ~4:5 aspect ratio as the source art so `cover` barely
+     has to crop anything, regardless of where the subject sits in-frame. */
+  height: auto;
+  aspect-ratio: 4 / 5;
+  background-position: center;
 }
 .wiki-card-cover--fallback {
   height: 140px;
