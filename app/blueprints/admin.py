@@ -242,20 +242,36 @@ def notion_pull(slug):
 
 
 def _push_wikipage_to_notion(notion, notion_page: dict, wiki_page) -> None:
-    """Overwrite a Notion page's title, cover, and content with the wiki page's."""
+    """Overwrite a Notion page's title, cover art, and content with the wiki page's.
+
+    Cover art is written to BOTH the page cover banner and the "Image URL"
+    property (when the database has one) — sync prefers Image URL as its
+    source of truth, so leaving it stale here would make the next sync
+    silently revert whatever cover was just pushed.
+    """
     title_prop_name = None
+    has_image_url_prop = False
     for name, prop in notion_page.get('properties', {}).items():
         if prop.get('type') == 'title':
             title_prop_name = name
-            break
+        if name == 'Image URL' and prop.get('type') == 'rich_text':
+            has_image_url_prop = True
+
+    cover_url = wiki_page.cover_image_url
+    if cover_url and cover_url.startswith('/'):
+        cover_url = f'https://gaming.jkomg.us{cover_url}'
+
+    properties = {}
+    if title_prop_name:
+        properties[title_prop_name] = {'title': [{'type': 'text', 'text': {'content': wiki_page.title}}]}
+    if cover_url and has_image_url_prop:
+        properties['Image URL'] = {'rich_text': [{'type': 'text', 'text': {'content': cover_url}}]}
 
     update_payload = {}
-    if title_prop_name:
-        update_payload['properties'] = {
-            title_prop_name: {'title': [{'type': 'text', 'text': {'content': wiki_page.title}}]}
-        }
-    if wiki_page.cover_image_url:
-        update_payload['cover'] = {'type': 'external', 'external': {'url': wiki_page.cover_image_url}}
+    if properties:
+        update_payload['properties'] = properties
+    if cover_url:
+        update_payload['cover'] = {'type': 'external', 'external': {'url': cover_url}}
     if update_payload:
         notion.pages.update(page_id=wiki_page.notion_page_id, **update_payload)
 
