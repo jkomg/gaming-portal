@@ -61,11 +61,15 @@ def create_app() -> Flask:
     from .blueprints.admin import bp as admin_bp
     from .blueprints.wiki import bp as wiki_bp
     from .blueprints.auth_bp import bp as auth_bp
+    from .blueprints import internal as internal_module
+    from .blueprints.internal import bp as internal_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(portal_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(internal_bp, url_prefix='/internal')
     app.register_blueprint(wiki_bp, url_prefix='/<campaign_slug>/wiki')
+    internal_module.init_app(csrf)
 
     # Retired standalone domain — send visitors to the live wiki instead of a dead page.
     @app.before_request
