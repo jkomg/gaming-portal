@@ -123,25 +123,30 @@ def campaign_delete(slug):
 
 # ── Notion Sync ────────────────────────────────────────────────────────────────
 
-@bp.route('/campaigns/<slug>/notion-sync', methods=['POST'])
-def notion_sync(slug):
-    c = Campaign.query.filter_by(slug=slug).first_or_404()
+def run_campaign_notion_sync(c: Campaign, triggered_by: str) -> tuple[str, str, int]:
+    """Sync every configured Notion database into campaign `c`'s wiki pages.
+
+    Shared by the staff-triggered route below and the token-authenticated
+    internal route (blueprints/internal.py) used by the recurring scheduled
+    sync. Returns (status, detail, pages_synced) and writes a SyncLog row.
+    """
     notion_dbs = c.notion_databases
     if not notion_dbs:
-        flash('No Notion databases configured for this campaign.', 'warning')
-        return redirect(url_for('admin.campaign_edit', slug=slug))
+        return 'skipped', 'No Notion databases configured for this campaign.', 0
 
-    # Resolve token: campaign can specify an env var name or use NOTION_TOKEN
     token_var = c.notion_token_secret or 'NOTION_TOKEN'
     notion_token = os.environ.get(token_var, '')
     if not notion_token:
-        flash(f'Notion token not found (env var: {token_var}).', 'danger')
-        return redirect(url_for('admin.campaign_edit', slug=slug))
+        detail = f'Notion token not found (env var: {token_var}).'
+        db.session.add(SyncLog(campaign_id=c.id, status='error', pages_synced=0,
+                                detail=detail, triggered_by=triggered_by))
+        db.session.commit()
+        return 'error', detail, 0
 
     synced, errors, conflicts = 0, [], []
     for category_slug, database_id in notion_dbs.items():
         try:
-            count, skipped = _sync_notion_database(notion_token, database_id, c.id, category_slug, get_staff_user())
+            count, skipped = _sync_notion_database(notion_token, database_id, c.id, category_slug, triggered_by)
             synced += count
             conflicts.extend(skipped)
         except Exception as exc:
@@ -150,26 +155,39 @@ def notion_sync(slug):
     if errors:
         status = 'partial' if synced else 'error'
         detail = '; '.join(errors)
-        flash(f'Sync completed with errors: {detail}', 'warning')
     else:
         status = 'partial' if conflicts else 'success'
         detail = f'Synced {synced} pages across {len(notion_dbs)} databases.'
-        flash(f'Synced {synced} pages from Notion.', 'success')
 
     if conflicts:
         detail += f' Skipped {len(conflicts)} page(s) edited in the wiki since their last Notion edit: ' \
                   + ', '.join(conflicts) + '. Pull those into Notion before syncing again, or they’ll keep being skipped.'
-        flash(f'{len(conflicts)} page(s) were newer in the wiki than in Notion and were NOT overwritten: '
-              + ', '.join(conflicts), 'warning')
 
     db.session.add(SyncLog(
         campaign_id=c.id,
         status=status,
         pages_synced=synced,
         detail=detail,
-        triggered_by=get_staff_user(),
+        triggered_by=triggered_by,
     ))
     db.session.commit()
+    return status, detail, synced
+
+
+@bp.route('/campaigns/<slug>/notion-sync', methods=['POST'])
+def notion_sync(slug):
+    c = Campaign.query.filter_by(slug=slug).first_or_404()
+    status, detail, synced = run_campaign_notion_sync(c, get_staff_user())
+
+    if status == 'skipped':
+        flash(detail, 'warning')
+    elif status == 'error':
+        flash(detail, 'danger')
+    elif status == 'partial':
+        flash(f'Sync completed with issues: {detail}', 'warning')
+    else:
+        flash(f'Synced {synced} pages from Notion.', 'success')
+
     return redirect(url_for('admin.campaign_edit', slug=slug))
 
 
