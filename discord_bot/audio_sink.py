@@ -14,7 +14,6 @@ reprocessed from disk even if the bot dies mid-recording.
 """
 from __future__ import annotations
 
-import array
 import json
 import os
 import struct
@@ -23,17 +22,38 @@ from pathlib import Path
 from typing import Optional
 
 import discord
+import numpy as np
 from discord.ext import voice_recv
 
 SESSIONS_DIR = Path(os.environ.get('SESSIONS_DIR', '/app/sessions'))
 
 
+def _design_lowpass_kernel(taps: int, cutoff_ratio: float) -> np.ndarray:
+    """Windowed-sinc FIR low-pass kernel. cutoff_ratio = fc / (fs/2)."""
+    n = np.arange(taps) - (taps - 1) / 2
+    h = np.sinc(cutoff_ratio * n) * cutoff_ratio
+    h *= np.hamming(taps)
+    h /= h.sum()
+    return h.astype(np.float32)
+
+
+# 48 kHz -> 16 kHz is a 3:1 decimation, so the anti-alias cutoff is 8 kHz,
+# i.e. 1/3 of the original Nyquist (24 kHz).
+_LOWPASS_KERNEL = _design_lowpass_kernel(taps=63, cutoff_ratio=1 / 3)
+
+
 def _downsample(pcm: bytes) -> bytes:
-    """48 kHz stereo 16-bit → 16 kHz mono 16-bit (naive 3:1 + left channel)."""
-    shorts: array.array = array.array('h')
-    shorts.frombytes(pcm)
-    mono = array.array('h', (shorts[i * 2] for i in range(0, len(shorts) // 2, 3)))
-    return mono.tobytes()
+    """48 kHz stereo 16-bit -> 16 kHz mono 16-bit (left channel, anti-aliased).
+
+    Decimating 3:1 without a low-pass filter first folds high-frequency
+    content back into the audible band as noise, degrading intelligibility
+    enough to make Whisper hallucinate instead of transcribing real speech.
+    """
+    shorts = np.frombuffer(pcm, dtype=np.int16)
+    left = shorts[0::2].astype(np.float32)
+    filtered = np.convolve(left, _LOWPASS_KERNEL, mode='same')
+    decimated = np.clip(filtered[::3], -32768, 32767).astype(np.int16)
+    return decimated.tobytes()
 
 
 class SessionSink(voice_recv.AudioSink):

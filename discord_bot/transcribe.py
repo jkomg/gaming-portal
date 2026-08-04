@@ -62,6 +62,12 @@ def _transcribe_segment(
     )
     results = []
     for seg in segments:
+        # Whisper hallucinates boilerplate ("thanks for watching", "bye") on
+        # silence/noise instead of returning nothing. no_speech_prob and
+        # avg_logprob are exactly the confidence signals for catching that —
+        # drop segments Whisper itself flagged as unreliable.
+        if seg.no_speech_prob > 0.6 or seg.avg_logprob < -1.0:
+            continue
         text = seg.text.strip()
         if text:
             results.append((
