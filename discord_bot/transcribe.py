@@ -39,6 +39,33 @@ def _pcm_to_float(pcm: bytes) -> np.ndarray:
     return np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
 
 
+# Target RMS for normalized speech (~ -26 dBFS) and the ceiling normalization
+# is allowed to push peaks to (leaves headroom so normalizing can't itself
+# introduce new clipping).
+_TARGET_RMS = 0.05
+_PEAK_CEILING = 0.95
+
+
+def _normalize_audio(audio: np.ndarray) -> np.ndarray:
+    """Bring audio to a consistent level regardless of a player's input gain.
+
+    Discord applies each player's own client-side AGC/noise suppression
+    before a bot ever sees the audio, and neither can be adjusted server-side
+    or per-guild — a hot mic reaches us already clipped. This can't undo
+    clipping that already happened, but normalizing every speaker to the same
+    target level (instead of relying on everyone's mic gain being reasonable)
+    is the one lever that works uniformly regardless of individual settings.
+    """
+    rms = np.sqrt(np.mean(audio ** 2))
+    if rms < 1e-6:
+        return audio  # silence — nothing to normalize
+    normalized = audio * (_TARGET_RMS / rms)
+    peak = np.max(np.abs(normalized))
+    if peak > _PEAK_CEILING:
+        normalized *= _PEAK_CEILING / peak
+    return normalized
+
+
 def _transcribe_segment(
     model: WhisperModel,
     audio: np.ndarray,
@@ -52,6 +79,8 @@ def _transcribe_segment(
     """
     if len(audio) < SAMPLE_RATE * 0.5:  # skip clips under 0.5 s
         return []
+
+    audio = _normalize_audio(audio)
 
     segments, _ = model.transcribe(
         audio,
