@@ -66,11 +66,17 @@ def _normalize_audio(audio: np.ndarray) -> np.ndarray:
     return normalized
 
 
+# A speaker whose raw (pre-normalization) audio clips this much of the time
+# is likely coming from an overdriven mic — worth a nudge to that one player.
+_CLIP_WARNING_RATIO = 0.015
+
+
 def _transcribe_segment(
     model: WhisperModel,
     audio: np.ndarray,
     session_offset_s: float,
     language: str = 'en',
+    initial_prompt: str | None = None,
 ) -> list[tuple[float, float, str]]:
     """Transcribe one contiguous audio chunk.
 
@@ -88,6 +94,7 @@ def _transcribe_segment(
         beam_size=5,
         vad_filter=True,          # skip internal silence
         vad_parameters={'min_silence_duration_ms': 300},
+        initial_prompt=initial_prompt,
     )
     results = []
     for seg in segments:
@@ -112,10 +119,25 @@ def transcribe_wavs(
     user_names: dict[int, str],
     session_duration_ms: int,  # kept for API compatibility, unused here
     progress_callback=None,  # optional: called with (completed_count, speaker_name)
-) -> list[tuple[float, str, str]]:
-    """Transcribe all users; return sorted [(session_time_s, speaker, text)]."""
+    character_names: list[str] | None = None,
+) -> tuple[list[tuple[float, str, str]], list[str]]:
+    """Transcribe all users.
+
+    Returns (lines, quality_warnings) where lines is sorted
+    [(session_time_s, speaker, text), ...] and quality_warnings names any
+    speaker whose raw audio was clipping heavily enough that it's worth a
+    nudge to check their mic input volume.
+    """
     model = _get_model()
     lines: list[tuple[float, str, str]] = []
+    quality_warnings: list[str] = []
+
+    initial_prompt = None
+    if character_names:
+        initial_prompt = (
+            'Dungeons & Dragons tabletop RPG session. '
+            'Character and NPC names that may come up: ' + ', '.join(character_names) + '.'
+        )
 
     for i, (uid, user_chunks) in enumerate(chunks.items()):
         name = user_names.get(uid, f'User{uid}')
@@ -128,14 +150,22 @@ def transcribe_wavs(
         runs = _group_into_runs(user_chunks, gap_threshold_ms=2000)
         log.info('  %d speaking runs for %s', len(runs), name)
 
+        clipped_samples = 0
+        total_samples = 0
         for run_offset_ms, run_pcm in runs:
             audio = _pcm_to_float(run_pcm)
-            segs = _transcribe_segment(model, audio, run_offset_ms / 1000)
+            total_samples += len(audio)
+            clipped_samples += int(np.sum(np.abs(audio) >= 0.999))
+            segs = _transcribe_segment(model, audio, run_offset_ms / 1000, initial_prompt=initial_prompt)
             for start, _end, text in segs:
                 lines.append((start, name, text))
 
+        if total_samples and clipped_samples / total_samples > _CLIP_WARNING_RATIO:
+            log.info('  %s: %.1f%% of audio was clipping', name, 100 * clipped_samples / total_samples)
+            quality_warnings.append(name)
+
     lines.sort(key=lambda x: x[0])
-    return lines
+    return lines, quality_warnings
 
 
 def _group_into_runs(

@@ -33,6 +33,15 @@ def get_campaign_id(slug: str) -> int | None:
     return int(rows[0]['id']) if rows else None
 
 
+def get_character_names(campaign_id: int) -> list[str]:
+    """Character/NPC names for this campaign, used to prime Whisper's vocabulary."""
+    rows = execute(
+        "SELECT title FROM wiki_pages WHERE campaign_id = ? AND category IN ('characters', 'npcs')",
+        [campaign_id],
+    )
+    return [r['title'] for r in rows]
+
+
 def _ensure_sessions_category(campaign_id: int) -> None:
     rows = execute('SELECT wiki_categories FROM campaigns WHERE id = ?', [campaign_id])
     if not rows:

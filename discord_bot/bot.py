@@ -271,17 +271,24 @@ async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None
             set_progress(phase='transcribing', detail=f'Transcribing {name}…',
                          current=completed, total=total_users)
 
+        from wiki_poster import get_character_names
+        character_names = get_character_names(state['campaign_id'])
+
         set_progress(phase='transcribing', detail='Starting transcription…',
                      current=0, total=total_users)
         log.info('Transcribing %d users...', total_users)
-        transcript_lines = await asyncio.to_thread(
-            _run_transcription, chunks, user_names, duration_ms, on_transcription_progress
+        transcript_lines, quality_warnings = await asyncio.to_thread(
+            _run_transcription, chunks, user_names, duration_ms, on_transcription_progress, character_names
         )
 
         if not transcript_lines:
             _processing.clear()
             if channel:
-                await channel.send('Transcription returned no text — notes not posted.')
+                msg = 'Transcription returned no text — notes not posted.'
+                if quality_warnings:
+                    msg += (f'\nAudio from {", ".join(quality_warnings)} was clipping heavily — '
+                            'that may be why. Might be worth checking their Discord mic input volume.')
+                await channel.send(msg)
             return
 
         set_progress(phase='summarizing', detail='Claude is reading the transcript…',
@@ -313,7 +320,11 @@ async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None
             import shutil
             shutil.rmtree(sink.session_dir, ignore_errors=True)
         if channel:
-            await channel.send(f'Session notes posted: {wiki_url}')
+            msg = f'Session notes posted: {wiki_url}'
+            if quality_warnings:
+                msg += (f'\n\N{WARNING SIGN} Audio from {", ".join(quality_warnings)} was clipping heavily — '
+                        'might be worth checking their Discord mic input volume before next session.')
+            await channel.send(msg)
 
     except Exception as exc:
         _processing.clear()
@@ -322,9 +333,9 @@ async def _process(state: dict, sink, duration_ms: int, channel_id: int) -> None
             await channel.send(f'Error generating session notes: {exc}')
 
 
-def _run_transcription(chunks, user_names, duration_ms, progress_callback=None):
+def _run_transcription(chunks, user_names, duration_ms, progress_callback=None, character_names=None):
     from transcribe import transcribe_wavs
-    return transcribe_wavs(chunks, user_names, duration_ms, progress_callback)
+    return transcribe_wavs(chunks, user_names, duration_ms, progress_callback, character_names)
 
 
 def _run_summarize(transcript_lines, campaign, date_str):
