@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "covers": [
+    {
+      "slug": "chronicle-home",
+      "title": "DC by Night",
+      "alt": "A storm-lit view over Washington, DC and the Capitol.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%"
+    },
+    {
+      "slug": "spc-tracker",
+      "title": "SPC Tracker",
+      "alt": "Guests mingle beneath chandeliers at a political reception.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "characters"
+    },
+    {
+      "slug": "plot-scene-tracker",
+      "title": "Plot & Scene Tracker",
+      "alt": "Photographs and documents spread across an investigation table.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "lore"
+    },
+    {
+      "slug": "locations",
+      "title": "Location Database",
+      "alt": "Rain-slick Washington streets beneath warm streetlights.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "locations"
+    },
+    {
+      "slug": "session-post-log",
+      "title": "Session & Post Log",
+      "alt": "An investigator\u2019s notebook and photographs on a late-night desk.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "sessions"
+    },
+    {
+      "slug": "pc-tracker",
+      "title": "PC Tracker",
+      "alt": "Mysterious figures beneath towering stone architecture.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "characters"
+    },
+    {
+      "slug": "coteries",
+      "title": "Coterie Tracker",
+      "alt": "A secluded room with a wooden table and empty chairs.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "coteries"
+    },
+    {
+      "slug": "domain-map",
+      "title": "Domain Map",
+      "alt": "An atmospheric aerial illustration of Washington at night; decorative, not a navigable map.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "locations"
+    },
+    {
+      "slug": "hunting-sites",
+      "title": "Hunting Sites",
+      "alt": "A warmly lit nightlife venue viewed across a dark street.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "locations"
+    },
+    {
+      "slug": "firstlight",
+      "title": "FIRSTLIGHT / Second Inquisition",
+      "alt": "Analysts watch surveillance screens in a federal operations center.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "factions"
+    },
+    {
+      "slug": "technocracy",
+      "title": "Technocracy",
+      "alt": "A vast command center filled with cold blue surveillance displays.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "factions"
+    },
+    {
+      "slug": "garou",
+      "title": "Garou",
+      "alt": "Ancient trees and tangled undergrowth in Rock Creek Park at night.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "factions"
+    },
+    {
+      "slug": "wraith",
+      "title": "Wraith",
+      "alt": "Decaying Washington monuments beneath spectral storm clouds.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "factions"
+    },
+    {
+      "slug": "mage",
+      "title": "Mage",
+      "alt": "Washington\u2019s monumental architecture beneath strange occult light.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "factions"
+    },
+    {
+      "slug": "hunter",
+      "title": "Hunter",
+      "alt": "A hunter cell prepares equipment around a safehouse table.",
+      "width": 1456,
+      "height": 816,
+      "object_position": "50% 50%",
+      "wiki_category": "factions"
+    }
+  ]
+}
