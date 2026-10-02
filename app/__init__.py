@@ -71,12 +71,15 @@ def create_app() -> Flask:
     app.register_blueprint(wiki_bp, url_prefix='/<campaign_slug>/wiki')
     internal_module.init_app(csrf)
 
-    # Retired standalone domain — send visitors to the live wiki instead of a dead page.
+    # Vanity domain redirects — send visitors to the wiki on the main portal domain.
     @app.before_request
-    def _redirect_legacy_vecna_domain():
+    def _redirect_vanity_domains():
         from flask import request, redirect
-        if request.host.split(':')[0] == 'vecna.jkomg.us':
+        host = request.host.split(':')[0]
+        if host == 'vecna.jkomg.us':
             return redirect('https://gaming.jkomg.us/vecna/wiki/', code=301)
+        if host == 'dcbn.jkomg.us':
+            return redirect('https://gaming.jkomg.us/dcbn/wiki/', code=301)
 
     # Global template context
     from .auth import is_staff as _is_staff, is_logged_in as _is_logged_in
