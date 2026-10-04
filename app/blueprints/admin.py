@@ -460,6 +460,26 @@ def _sync_notion_database(token: str, database_id: str, campaign_id: int,
     return count, skipped
 
 
+def _notion_page_status(page: dict, *, require_visibility: bool = False) -> str:
+    """Visibility is an explicit publication choice, separate from workflow Status.
+
+    DC requires opt-in. Older campaigns retain the legacy Visible convention.
+    Archived/trashed pages and malformed controls always remain private.
+    """
+    if page.get('archived') or page.get('in_trash'):
+        return 'archived'
+    props = page.get('properties', {})
+    if 'Visibility' in props:
+        prop = props['Visibility']
+        choice = prop.get('select') if prop.get('type') == 'select' else None
+        name = (choice or {}).get('name', '')
+        return 'active' if name in ('Players', 'Public') else 'draft'
+    if 'Visible' in props:
+        prop = props['Visible']
+        return 'active' if prop.get('type') == 'checkbox' and prop.get('checkbox') is True else 'draft'
+    return 'draft' if require_visibility else 'active'
+
+
 def _upsert_notion_page(notion, page: dict, campaign_id: int,
                          category: str, updated_by: str) -> str | None:
     """Convert a Notion page to a WikiPage row.
@@ -472,8 +492,17 @@ def _upsert_notion_page(notion, page: dict, campaign_id: int,
 
     notion_id   = page['id']
     props       = page.get('properties', {})
-    archived    = page.get('archived', False)
     notion_edited_at = _parse_notion_datetime(page.get('last_edited_time'))
+    campaign = db.session.get(Campaign, campaign_id)
+    page_status = _notion_page_status(
+        page, require_visibility=bool(campaign and campaign.slug == 'dcbn'))
+
+    existing = WikiPage.query.filter_by(campaign_id=campaign_id, notion_page_id=notion_id).first()
+    # Withdrawal of publication is immediate even when wiki content is newer,
+    # untitled, or cannot be fetched. Keep the content timestamp for conflict checks.
+    if existing and page_status in ('draft', 'archived'):
+        existing.status = page_status
+        db.session.commit()
 
     # Extract title from any title-type property
     title = ''
@@ -489,8 +518,6 @@ def _upsert_notion_page(notion, page: dict, campaign_id: int,
     slug = re.sub(r'[\s_]+', '-', slug).strip('-')
     if not slug:
         return
-
-    existing = WikiPage.query.filter_by(campaign_id=campaign_id, notion_page_id=notion_id).first()
 
     # Conflict guard: if someone edited this page in the wiki UI more recently
     # than it was last edited in Notion, don't clobber it — Notion isn't the
@@ -525,20 +552,6 @@ def _upsert_notion_page(notion, page: dict, campaign_id: int,
         if line and not line.startswith('#'):
             summary = line[:200]
             break
-
-    # "Visible" checkbox (legacy convention from the old standalone Vecna
-    # wiki, still present on most Notion databases) controls draft vs active;
-    # Notion's own archived/trashed flag always wins over it. Databases
-    # without a Visible property at all default to visible=True so campaigns
-    # that never adopted the convention keep their current behavior.
-    visible_prop = props.get('Visible')
-    is_visible = visible_prop.get('checkbox', True) if visible_prop else True
-    if archived:
-        page_status = 'archived'
-    elif not is_visible:
-        page_status = 'draft'
-    else:
-        page_status = 'active'
 
     # Stamp updated_at with Notion's own last-edited time, not wall-clock now.
     # The pull path (and this same guard, on the next sync) treat updated_at as
