@@ -60,14 +60,15 @@ CAMPAIGN_DESCRIPTION = (
 CAMPAIGN_STATUS = 'active'  # full migration -- gaming-portal is now the canonical wiki
 
 WIKI_CATEGORIES = [
-    {'slug': 'locations',   'name': 'Locations',   'icon': 'bi-geo-alt-fill'},
-    {'slug': 'characters',  'name': 'Characters',  'icon': 'bi-person-fill'},
-    {'slug': 'backgrounds', 'name': 'Backgrounds', 'icon': 'bi-journal-text'},
-    {'slug': 'spcs',        'name': 'SPCs',        'icon': 'bi-person-badge-fill'},
-    {'slug': 'plotlines',   'name': 'Plotlines',   'icon': 'bi-diagram-3-fill'},
-    {'slug': 'coteries',    'name': 'Coteries',    'icon': 'bi-people-fill'},
-    {'slug': 'factions',    'name': 'Factions',    'icon': 'bi-shield-fill'},
-    {'slug': 'lore',        'name': 'Lore',        'icon': 'bi-book-fill'},
+    {'slug': 'locations',           'name': 'Locations',           'icon': 'bi-geo-alt-fill'},
+    {'slug': 'characters',          'name': 'Characters',          'icon': 'bi-person-fill'},
+    {'slug': 'backgrounds',         'name': 'Backgrounds',         'icon': 'bi-journal-text'},
+    {'slug': 'spcs',                'name': 'SPCs',                'icon': 'bi-person-badge-fill'},
+    {'slug': 'plotlines',           'name': 'Plotlines',           'icon': 'bi-diagram-3-fill'},
+    {'slug': 'coteries',            'name': 'Coteries',            'icon': 'bi-people-fill'},
+    {'slug': 'factions',            'name': 'Factions',            'icon': 'bi-shield-fill'},
+    {'slug': 'character-creation', 'name': 'Character Creation',  'icon': 'bi-person-plus-fill'},
+    {'slug': 'lore',                'name': 'Lore',                'icon': 'bi-book-fill'},
 ]
 
 EXPORT_PATH = Path(__file__).parent / 'fixtures' / 'athens_wiki_export.json'
