@@ -209,7 +209,7 @@ def run(apply=False):
             title = title_for(row["properties"])
             body = markdown_blocks(notion_id) if apply else ""
             if not apply:
-                print("UPSERT (dry run)", category, title, notion_id)
+                print("UPSERT CANDIDATE (dry run)", category, title, notion_id)
                 continue
             if match is None:
                 match = WikiPage(campaign_id=campaign.id,
@@ -219,14 +219,15 @@ def run(apply=False):
                 match.source == "manual" and (match.body_markdown or "").strip()):
                 print("SKIP OWNED", title)
                 continue
-            match.title = title
-            match.summary = str(property_text(row["properties"].get("Summary")))[:500]
-            match.body_markdown = body
-            match.status = "active"
-            match.source = "notion"
-            match.notion_page_id = notion_id
-            match.updated_by = "notion-safe-sync"
-            changed += 1
+            summary = str(property_text(row["properties"].get("Summary")))[:500]
+            wanted = dict(title=title, summary=summary, body_markdown=body,
+                          status="active", source="notion", notion_page_id=notion_id,
+                          category=category)
+            if any(getattr(match, field) != value for field, value in wanted.items()):
+                for field, value in wanted.items():
+                    setattr(match, field, value)
+                match.updated_by = "notion-safe-sync"
+                changed += 1
         if apply:
             db.session.commit()
         print("Done:", len(actions), "decisions,", changed, "writes")
