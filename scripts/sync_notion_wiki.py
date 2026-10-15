@@ -11,7 +11,12 @@ are withheld; previously imported ones are hidden. Manual pages are preserved.
 import argparse
 import os
 import re
+import sys
 import unicodedata
+from pathlib import Path
+
+# Allow the documented `python scripts/sync_notion_wiki.py` invocation.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import requests
 
@@ -153,10 +158,10 @@ def plan(session, campaign, records):
              if p.notion_page_id}
     by_slug = {p.slug: p for p in existing}
     actions = []
-    observed = set()
+    claimed_slugs = set()
+    claimed_targets = set()
     for category, row in sorted(records, key=lambda item: item[1]["id"]):
         notion_id = row["id"].replace("-", "")
-        observed.add(notion_id)
         props = row.get("properties", {})
         approved = public_approval(props) and not row.get("archived") and not row.get("in_trash")
         match = by_id.get(notion_id)
@@ -171,6 +176,14 @@ def plan(session, campaign, records):
             actions.append(("invalid-title", category, row, match))
             continue
         slug = slugify(title)
+        if not slug:
+            actions.append(("invalid-title", category, row, match))
+            continue
+        # Existing Notion-linked pages retain their current slug.
+        target_slug = match.slug if match else slug
+        if target_slug in claimed_slugs or (match and match.id in claimed_targets):
+            actions.append(("collision", category, row, match))
+            continue
         if not match and slug in by_slug:
             candidate = by_slug[slug]
             # Only adopt *empty* automatically seeded placeholders.
@@ -179,6 +192,12 @@ def plan(session, campaign, records):
             else:
                 actions.append(("collision", category, row, candidate))
                 continue
+        if match and match.id in claimed_targets:
+            actions.append(("collision", category, row, match))
+            continue
+        claimed_slugs.add(target_slug)
+        if match:
+            claimed_targets.add(match.id)
         actions.append(("upsert", category, row, match))
     # An absent API record is not proof of deletion. Do not hide it automatically.
     return actions
