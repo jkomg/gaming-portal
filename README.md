@@ -124,7 +124,7 @@ content; ordinary `--apply` preserves wiki edits. Refresh also adds new categori
 
 Blades covers and portraits are stored locally under `app/static/blades/art/`.
 Their source URLs, licenses, extraction details, and checksums are in `manifest.json`;
-players can read credits at `/blades/wiki/art-and-credits`. Portraits are public-domain
-images curated in dustatron’s free Doskvol Dossiers pack; the night scene is a
+players can read credits at `/blades/wiki/art-and-credits`. Character portraits are supplied FotoSketcher treatments from the Blades Portraits
+folder, with original Unsplash photographers and image IDs credited; the night scene is a
 Smithsonian CC0 Whistler painting. These licenses do not apply to the supplied
 Tim Denee district map.

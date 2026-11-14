@@ -1935,7 +1935,7 @@ a { text-decoration: none; color: inherit; }
   .wiki-search-trigger { width: 36px; justify-content: center; padding: 7px; }
 }
 
-/* Preserve the full historical portrait alongside the Blades page title. */
+/* Preserve the full portrait alongside the Blades page title. */
 .wiki-cover-band--portrait .wiki-cover-band-bg {
   background-size: contain;
   background-repeat: no-repeat;
