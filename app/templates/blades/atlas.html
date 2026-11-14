@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crow's Foot atlas · {{ campaign.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='blades/atlas.css') }}">
+  <script defer src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='blades/atlas.js') }}"></script>
+</head>
+<body data-image="{{ url_for('static', filename='blades/crows-foot.jpg') }}" data-sites="{{ url_for('static', filename='blades/sites.json') }}">
+  <header><a href="{{ url_for('wiki.index', campaign_slug='blades') }}">← Campaign wiki</a><span> DOSKVOL / FIELD ATLAS</span></header>
+  <main>
+    <aside>
+      <p class="eyebrow">A SPARK IN THE GUTTER</p><h1>Crow's Foot</h1>
+      <p>Every corner has a claimant. Find the people who make this neighborhood move.</p>
+      <label for="faction">Faction presence</label>
+      <select id="faction"><option value="all">All known sites</option><option>Crows</option><option>Lampblacks</option><option>Red Sashes</option><option>Bluecoats</option><option>Neutral</option><option>First score</option></select>
+      <h2>Known sites</h2><div id="directory" aria-live="polite"></div>
+      <p id="status" role="status">Opening the atlas…</p>
+      <button id="fit" type="button">Show whole district</button>
+      <section id="details" aria-live="polite"><h2>Select a site</h2><p>Use a map marker or the directory. Markers are approximate; faction presence does not imply exclusive territory.</p></section>
+      <p class="credits">Map: Tim Denee / Old Dog Games; Blades setting by John Harper. Personal campaign reference. Official sites follow the supplied district artwork; the score sites are provisional original placements. <a href="/blades/wiki/atlas-notes">Sources and notes</a>.</p>
+    </aside>
+    <section class="map-stage" aria-label="Interactive district map"><div id="map" aria-label="Crow's Foot; use the directory for keyboard selection"></div></section>
+  </main>
+  <noscript><p>JavaScript is needed for the interactive map. <a href="/blades/wiki/crows-foot">Read the district guide</a> or <a href="{{ url_for('static', filename='blades/crows-foot.jpg') }}">open the map image</a>.</p></noscript>
+</body>
+</html>

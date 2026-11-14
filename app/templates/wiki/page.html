@@ -5,7 +5,7 @@
 {% block content_wrapper_class %}{% endblock %}
 
 {% block wiki_hero %}
-<div class="wiki-cover-band">
+<div class="wiki-cover-band{% if campaign.slug == 'blades' and page.slug.startswith('pregen-') %} wiki-cover-band--portrait{% endif %}">
     {% if page.cover_image_url %}
     <div class="wiki-cover-band-bg" style="background-image:url('{{ page.cover_image_url }}');"></div>
     {% else %}

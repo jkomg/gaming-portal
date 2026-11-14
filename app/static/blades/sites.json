@@ -1,0 +1,72 @@
+[
+  {
+    "id": "crows-nest",
+    "name": "Crow's Nest",
+    "faction": "Crows",
+    "x": 0.565,
+    "y": 0.55,
+    "description": "An ancient tower and the headquarters of the Crows.",
+    "provenance": "Mapped landmark",
+    "wiki": "factions-on-your-doorstep"
+  },
+  {
+    "id": "lampblack-warehouse",
+    "name": "Lampblack warehouse",
+    "faction": "Lampblacks",
+    "x": 0.35,
+    "y": 0.47,
+    "description": "A local base associated with the Lampblacks.",
+    "provenance": "Mapped landmark",
+    "wiki": "factions-on-your-doorstep"
+  },
+  {
+    "id": "red-sash-academy",
+    "name": "Red Sash Sword Academy",
+    "faction": "Red Sashes",
+    "x": 0.78,
+    "y": 0.46,
+    "description": "An Iruvian sword school and base of the Red Sashes.",
+    "provenance": "Mapped landmark",
+    "wiki": "factions-on-your-doorstep"
+  },
+  {
+    "id": "precinct",
+    "name": "Crow’s Foot precinct",
+    "faction": "Bluecoats",
+    "x": 0.576,
+    "y": 0.31,
+    "description": "The district watch precinct. Enforcement and discretion both have costs.",
+    "provenance": "Mapped landmark",
+    "wiki": "factions-on-your-doorstep"
+  },
+  {
+    "id": "tangletown",
+    "name": "Tangletown",
+    "faction": "Neutral",
+    "x": 0.16,
+    "y": 0.79,
+    "description": "A floating neighborhood where the local gangs recognize neutral ground.",
+    "provenance": "Mapped landmark",
+    "wiki": "crows-foot"
+  },
+  {
+    "id": "veys-exchange",
+    "name": "Vey’s Exchange",
+    "faction": "First score",
+    "x": 0.35,
+    "y": 0.635,
+    "description": "Tonight’s auction-house target. A proposed location near the canal; choose the exact building together.",
+    "provenance": "Original provisional site",
+    "wiki": "the-borrowed-spark"
+  },
+  {
+    "id": "landing",
+    "name": "Canal landing",
+    "faction": "First score",
+    "x": 0.315,
+    "y": 0.635,
+    "description": "A proposed nearby handoff and escape point. A boat still needs arranging.",
+    "provenance": "Original provisional site",
+    "wiki": "the-borrowed-spark"
+  }
+]

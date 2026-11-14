@@ -64,6 +64,9 @@ def create_app() -> Flask:
     from .blueprints import internal as internal_module
     from .blueprints.internal import bp as internal_bp
 
+    from .blueprints.blades import bp as blades_bp
+
+    app.register_blueprint(blades_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(portal_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -100,6 +103,8 @@ def create_app() -> Flask:
         except Exception:
             pass  # already exists — safe to ignore
         _seed_campaigns_if_empty()
+        from .blades_campaign import seed as seed_blades
+        seed_blades()
 
     return app
 
