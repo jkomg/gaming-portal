@@ -97,3 +97,34 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Blades in the Dark campaign
+
+Normal app startup seeds the Blades campaign from its bundled fixture, including
+on Cloud Run. Existing page text, statuses, custom covers, and campaign settings
+are preserved; missing imported covers and categories are added. The importer previews eighteen prepared wiki pages without opening a
+DB. Apply it to create the Upcoming campaign, preserving existing pages on reruns:
+
+```bash
+python scripts/import_blades.py
+python scripts/import_blades.py --apply
+```
+
+It uses the app's normal `DATABASE_URL`; unset means local SQLite. Three GM pages
+stay draft/staff-only. Five pregens and a completed Shadows crew make the teaching
+score playable without character or crew creation. The player wiki is `/blades/wiki/`, and its read-only
+Crow's Foot image atlas is `/blades/atlas/`. The atlas reuses dcbn's vendored
+Leaflet with its license and includes only public locations, with approximate
+markers rather than territorial borders.
+
+Content is maintained in the sibling `blades/campaign/` workspace; regenerate
+`scripts/fixtures/blades_campaign.json` with `blades/tools/export_portal.py`.
+After re-exporting, `--apply --refresh` deliberately replaces importer-owned page
+content; ordinary `--apply` preserves wiki edits. Refresh also adds new categories without replacing existing category names or settings. Neither option deploys the app.
+
+Blades covers and portraits are stored locally under `app/static/blades/art/`.
+Their source URLs, licenses, extraction details, and checksums are in `manifest.json`;
+players can read credits at `/blades/wiki/art-and-credits`. Character portraits are supplied FotoSketcher treatments from the Blades Portraits
+folder, with original Unsplash photographers and image IDs credited; the night scene is a
+Smithsonian CC0 Whistler painting. These licenses do not apply to the supplied
+Tim Denee district map.

@@ -43,6 +43,10 @@
             {% endfor %}
         </nav>
 
+        {% if campaign.slug == 'blades' %}
+        <a class="wiki-nav-cat" href="{{ url_for('blades.atlas') }}">Atlas</a>
+        {% endif %}
+
         {# Right side #}
         <div class="wiki-nav-right" id="wikiNavRight">
             {# Search trigger (opens palette on desktop, goes to search page on mobile) #}
@@ -155,6 +159,10 @@
             {{ campaign.name }} is not official World of Darkness material and is not endorsed by Paradox Interactive AB.
         </p>
     </div>
+    {% endif %}
+
+    {% if campaign.slug == 'blades' %}
+    <p class="wiki-container"><a href="{{ url_for('wiki.page', page_slug='art-and-credits') }}">Artwork sources and credits</a> · Unofficial personal Blades campaign</p>
     {% endif %}
 
     <div class="wiki-footer-bottom">

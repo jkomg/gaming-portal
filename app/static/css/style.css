@@ -1934,3 +1934,11 @@ a { text-decoration: none; color: inherit; }
   .wiki-search-trigger .search-placeholder { display: none; }
   .wiki-search-trigger { width: 36px; justify-content: center; padding: 7px; }
 }
+
+/* Preserve the full portrait alongside the Blades page title. */
+.wiki-cover-band--portrait .wiki-cover-band-bg {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right 10% center;
+  background-color: #121a20;
+}

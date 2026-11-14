@@ -9,7 +9,7 @@ migrate = Migrate()
 csrf = CSRFProtect()
 
 
-def create_app() -> Flask:
+def create_app(*, seed_campaigns: bool = True) -> Flask:
     app = Flask(__name__, template_folder='templates', static_folder='static')
 
     # Config
@@ -64,6 +64,9 @@ def create_app() -> Flask:
     from .blueprints import internal as internal_module
     from .blueprints.internal import bp as internal_bp
 
+    from .blueprints.blades import bp as blades_bp
+
+    app.register_blueprint(blades_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(portal_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -99,7 +102,10 @@ def create_app() -> Flask:
             db.create_all()
         except Exception:
             pass  # already exists — safe to ignore
-        _seed_campaigns_if_empty()
+        if seed_campaigns:
+            _seed_campaigns_if_empty()
+            from .blades_campaign import seed as seed_blades
+            seed_blades()
 
     return app
 
