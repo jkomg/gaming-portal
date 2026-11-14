@@ -2,7 +2,12 @@ import hashlib
 import json
 import os
 import re
+import sqlite3
+import subprocess
+import sys
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from app import create_app
@@ -84,6 +89,37 @@ class BladesCampaignTests(unittest.TestCase):
             seed(self.payload, refresh=True)
         self.assertEqual(first.body_markdown, 'Preserve after rollback')
         self.assertEqual(collision.source, 'manual')
+
+    def test_cli_refresh_collision_leaves_database_unchanged(self):
+        with tempfile.TemporaryDirectory() as directory:
+            filename = Path(directory) / 'refresh.sqlite'
+            environment = dict(os.environ, DATABASE_URL=f'sqlite:///{filename}')
+            with patch.dict(os.environ, environment):
+                app = create_app(seed_campaigns=False)
+            with app.app_context():
+                campaign = Campaign(slug='blades', name='Authored campaign', status='hiatus')
+                campaign.wiki_categories = [{'slug': 'lore', 'name': 'Our Lore', 'icon': 'custom'}]
+                db.session.add(campaign)
+                db.session.flush()
+                db.session.add_all([
+                    WikiPage(campaign_id=campaign.id, slug='start-here', title='Authored opening',
+                             source='blades-seed', status='archived', body_markdown='Keep this edit'),
+                    WikiPage(campaign_id=campaign.id, slug='crows-foot', title='Manual collision',
+                             source='manual', status='draft', body_markdown='Keep this too'),
+                ])
+                db.session.commit()
+                db.session.remove()
+                db.engine.dispose()
+            with sqlite3.connect(filename) as connection:
+                before = tuple(connection.iterdump())
+            result = subprocess.run(
+                [sys.executable, str(ROOT / 'scripts/import_blades.py'), '--apply', '--refresh'],
+                cwd=ROOT, env=environment, text=True, capture_output=True,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('Refusing to replace non-imported page: crows-foot', result.stderr)
+            with sqlite3.connect(filename) as connection:
+                self.assertEqual(tuple(connection.iterdump()), before)
 
     def test_public_routes_and_gm_visibility(self):
         for path in ['/', '/blades', '/blades/wiki/', '/blades/wiki/start-here', '/blades/atlas/']:

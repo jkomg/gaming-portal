@@ -33,7 +33,8 @@ def main():
         print('Preview only; no database opened. Use --apply to seed the configured database.')
         return
     from app import create_app
-    app = create_app()
+    # The importer owns its seed transaction, including collision rollback.
+    app = create_app(seed_campaigns=False)
     with app.app_context():
         seed(payload, refresh=args.refresh)
     print('Campaign available at /blades/wiki/; atlas at /blades/atlas/.')
