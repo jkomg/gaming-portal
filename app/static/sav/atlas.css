@@ -1,0 +1,44 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; color: #e8f1ee; background: #0b151d; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: #9ee4da; }
+header { padding: 22px 30px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-bottom: 1px solid #31434c; }
+header span, .eyebrow { color: #8dafb5; letter-spacing: .16em; font-size: .72rem; }
+main { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); }
+aside { padding: 26px 30px; max-height: calc(100dvh - 65px); overflow-y: auto; }
+h1 { font-family: Georgia, serif; font-weight: 400; font-size: 2.4rem; line-height: 1.05; margin: 15px 0 24px; }
+h2 { font-size: 1.2rem; }
+p { color: #b6c8cd; line-height: 1.6; }
+label { display: block; margin: 24px 0 8px; font-size: .85rem; }
+select, button { font: inherit; color: inherit; background: #112630; border: 1px solid #3a565f; border-radius: 5px; padding: 12px; }
+select { width: 100%; }
+button { cursor: pointer; text-align: left; }
+#directory { display: grid; gap: 7px; }
+small { display: block; font-size: .7rem; color: #9eb4b8; margin-top: 5px; }
+button[aria-pressed="true"], button:hover { border-color: #8fe4d2; background: #1e4049; }
+button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #f3bd7d; outline-offset: 3px; }
+#status { font-size: .75rem; }
+#details { padding-top: 16px; margin-top: 24px; border-top: 1px solid #3a565f; }
+.credits { font-size: .7rem; line-height: 1.6; }
+.map-stage { min-height: 560px; padding: 30px; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(#0a1728cf, #0b1724e8), url('/static/sav/carina.jpg') center/cover; }
+.map-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: .65rem; letter-spacing: .15em; color: #b4cdd0; }
+.map-caption strong { color: #efc998; font-weight: 500; }
+svg { width: 100%; min-height: 300px; overflow: visible; margin: 30px 0; }
+.orbits { fill: none; stroke: #7a9da332; stroke-width: 1; }
+.routes { fill: none; stroke: #88e6da; stroke-width: 2; }
+.alternate { stroke-dasharray: 5 7; opacity: .55; }
+.site { cursor: pointer; }
+.site-halo { fill: #173440; stroke: #60828e; stroke-width: 1.5; }
+.site-dot { fill: #9ee4da; }
+.site text { font-size: 17px; fill: #e6f1ef; font-weight: 600; }
+.site .site-group { font-size: 12px; fill: #a9c1c7; font-weight: 400; }
+.site[aria-pressed="true"] .site-halo, .site:hover .site-halo { stroke: #ffd098; stroke-width: 3; fill: #3b3d39; }
+.site:focus-visible { outline: none; }
+.site:focus-visible .site-halo { stroke: #ffd098; stroke-width: 4; }
+.route-note { fill: #85acae; font-size: 10px; letter-spacing: 1px; }
+.map-legend { font-size: .72rem; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.legend-line { display: inline-block; width: 32px; border-top: 2px solid #88e6da; }
+.legend-line.alternate { border-top-style: dashed; }
+.noscript { padding: 20px; }
+@media (max-width: 850px) { main { grid-template-columns: 1fr; } aside { max-height: none; } .map-stage { grid-row: 1; min-height: 380px; padding: 24px 18px; } svg { margin: 25px 0; } }
+@media (prefers-reduced-motion: no-preference) { .site-halo { transition: fill .15s, stroke .15s; } }

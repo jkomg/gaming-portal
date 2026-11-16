@@ -1,0 +1,7 @@
+[
+  {"id":"warren","name":"Warren","group":"Local context","x":130,"y":330,"wiki":"atlas-notes","access":"Published Rin location; context for the local route.","note":"The diagram does not map every Warren port or establish canonical orbital positions."},
+  {"id":"desk","name":"Kestrel bonded desk","group":"Station operations","x":390,"y":130,"wiki":"a-breathing-cargo","access":"Pickup authorization and signed cargo release; speak to Mira Dax.","note":"Release of the consignment is separate from outbound customs clearance."},
+  {"id":"berth","name":"Quiet Orbit berth","group":"Crew","x":420,"y":350,"wiki":"quiet-orbit","access":"The crew's Stardancer is docked here, with cargo space and equipment access.","note":"A Fake Transponder and Smuggling Compartments offer options, not automatic immunity from inspection."},
+  {"id":"inspection","name":"Inspection corridor","group":"Customs","x":680,"y":220,"wiki":"people-and-factions","access":"Manifest check and departure clearance; Inspector Hale can negotiate a medical escort.","note":"A local Rin traffic corridor, not an inter-system jumpgate. Other approaches can emerge in play."},
+  {"id":"clinic","name":"Lantern Clinic","group":"Independent medical care","x":870,"y":410,"wiki":"a-breathing-cargo","access":"An independent medical ship beyond the inspection perimeter, still in Rin.","note":"Dr. Olan Vey can receive a living patient or consignment. Going here does not count as laying low in another system."}
+]

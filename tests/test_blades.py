@@ -66,7 +66,7 @@ class BladesCampaignTests(unittest.TestCase):
         self.assertEqual(campaign.name, 'Our crew name')
         self.assertEqual(page.body_markdown, 'Our own opening')
         self.assertEqual(campaign.wiki_pages.count(), len(self.payload["pages"]))
-        self.assertEqual(Campaign.query.count(), 5)
+        self.assertEqual(Campaign.query.count(), 6)
 
     def test_refresh_adds_new_category_without_replacing_custom_categories(self):
         campaign = Campaign.query.filter_by(slug='blades').one()

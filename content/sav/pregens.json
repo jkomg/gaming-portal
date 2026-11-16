@@ -1,0 +1,239 @@
+[
+  {
+    "slug": "pregen-drift",
+    "name": "Rin “Drift” Vale",
+    "book": "Pilot",
+    "sheet": 5,
+    "role": "Make the ship go where the authorities would prefer it did not.",
+    "actions": {
+      "Helm": 2,
+      "Rig": 1,
+      "Scramble": 2,
+      "Consort": 1,
+      "Sway": 1
+    },
+    "base": {
+      "Helm": 2,
+      "Rig": 1
+    },
+    "starting": "Ace Pilot",
+    "start_text": "Potency on speed-related rolls; +1d when resisting piloting consequences. Potency does not erase superior enemy systems automatically.",
+    "special": "Traveler",
+    "special_text": "Potency when you Consort with or Sway unusual cultures or xenos. Describe what lets you bridge the difference; it does not give a universal extra die.",
+    "heritage": "Spacer; raised on ice-haulers.",
+    "background": "Labor; former tug pilot, dismissed for towing a stranded ship without permission.",
+    "friend": "Triv, a ship mechanic. You always return borrowed equipment.",
+    "rival": "Choss, a professional racer. You refused to throw a race.",
+    "vice": "Gambling; low-stakes flight-simulator wagers at Alor’s stopover bar (campaign placement).",
+    "tie": "Fuse saved your engine during the air-scrubber run; you got Anchor out before the dock shutters closed.",
+    "drive": "Keep the Quiet Orbit flying without becoming someone’s owned transport.",
+    "look": "Old flight jacket, close-fitting cap, hands that never stop plotting trajectories.",
+    "gear": "Fine customized spacesuit 2; fine small Urbot 2; fine mechanics kit 1; grappling hook 1; Guild license 1; victory cigars 0. Your Urbot is a fictionally useful piloting helper, not an extra PC with free turns.",
+    "xp": "Speed or flair",
+    "portrait": "mott",
+    "resistance": {
+      "Insight": 1,
+      "Prowess": 2,
+      "Resolve": 2
+    },
+    "vice_dice": 1
+  },
+  {
+    "slug": "pregen-fuse",
+    "name": "Tala “Fuse” Noor",
+    "book": "Mechanic",
+    "sheet": 2,
+    "role": "Turn machinery into an answer, then keep it running long enough to escape.",
+    "actions": {
+      "Rig": 2,
+      "Study": 1,
+      "Hack": 2,
+      "Scramble": 1,
+      "Consort": 1
+    },
+    "base": {
+      "Rig": 2,
+      "Study": 1
+    },
+    "starting": "Tinker",
+    "start_text": "Add one segment when working on a clock with Rig or Hack, or when studying a schematic. This applies during jobs and downtime; it does not create an unnecessary clock for a one-action task.",
+    "special": "Bailing Wire and Mech-Tape",
+    "special_text": "Gain one extra downtime activity to repair; your repair activity costs 0 CRED. Free repairs cannot be saved up. Ship upkeep is still a separate cost.",
+    "heritage": "Spacer; family ran a repair concession.",
+    "background": "Guilder; left an engineering apprenticeship over an unsafe recall.",
+    "friend": "Slice, a junkyard owner. You identify useful parts before they are melted.",
+    "rival": "Nisa, a previous employer. Your safety complaint cost them a contract.",
+    "vice": "Obligation; repair habitat scrubbers for families without Guild cover. Purveyor/contact: Olan’s community workshop at Kestrel (original SPC).",
+    "tie": "Drift trusts your emergency patches. Mercy keeps reminding you that sleep counts as maintenance.",
+    "drive": "Prove small crews can keep people alive without a Guild monopoly.",
+    "look": "Work coat, circuit-pattern scarf, diagnostic marks on both gloves.",
+    "gear": "Fine hacking rig 1; fine ship repair tools 2; small drone 0; vision-enhancing goggles 1; spare parts 1; genius pet 0. This pregen’s pet is a tiny harmless tunnel-lizard, with no independent combat or technical skill.",
+    "xp": "Technical skill or ingenuity",
+    "portrait": "coil",
+    "resistance": {
+      "Insight": 3,
+      "Prowess": 1,
+      "Resolve": 1
+    },
+    "vice_dice": 1
+  },
+  {
+    "slug": "pregen-silk",
+    "name": "Dev “Silk” Aran",
+    "book": "Speaker",
+    "sheet": 7,
+    "role": "Get access, recognize a lie, and give people a reason to deal.",
+    "actions": {
+      "Consort": 2,
+      "Command": 1,
+      "Sway": 2,
+      "Study": 1,
+      "Skulk": 1
+    },
+    "base": {
+      "Consort": 2,
+      "Command": 1
+    },
+    "starting": "Air of Respectability",
+    "start_text": "One extra downtime activity for acquiring assets or laying low. It is restricted, not an unrestricted third activity; laying low still requires another system.",
+    "special": "Player",
+    "special_text": "You always know when someone lies to you. This does not reveal the whole truth, and an honest mistake is not a lie.",
+    "heritage": "Imperial; educated on Warren.",
+    "background": "Noble; former household liaison who abandoned a comfortable post.",
+    "friend": "Je-zee, a diplomat. You quietly helped a stranded delegation.",
+    "rival": "Manda, a Guild member. You exposed a convenient accounting error.",
+    "vice": "Luxury; carefully curated meals and proper clothes, supplied by Alor’s bar (campaign detail).",
+    "tie": "Anchor protected you during the scrubber handoff; you promised to make the next handoff easier.",
+    "drive": "Build a reputation people can trust without surrendering your independence.",
+    "look": "Repaired formal jacket, reversible collar, immaculate false confidence.",
+    "gear": "Fine clothes 1; legitimate ID 0; luxury items use the load boxes on the Speaker sheet (small 0, ordinary 1, large 2); memento 0. A legitimate ID proves your identity, not a right to carry disputed cargo.",
+    "xp": "Deception or influence",
+    "portrait": "amancio",
+    "resistance": {
+      "Insight": 1,
+      "Prowess": 1,
+      "Resolve": 3
+    },
+    "vice_dice": 1
+  },
+  {
+    "slug": "pregen-anchor",
+    "name": "Kel “Anchor” Soren",
+    "book": "Muscle",
+    "sheet": 3,
+    "role": "Keep the crew safe when words stop working.",
+    "actions": {
+      "Scrap": 2,
+      "Command": 1,
+      "Doctor": 1,
+      "Study": 1,
+      "Scramble": 1,
+      "Skulk": 1
+    },
+    "base": {
+      "Scrap": 2,
+      "Command": 1
+    },
+    "starting": "Unstoppable",
+    "start_text": "Push yourself to perform nearly superhuman force or engage a small gang on equal footing in close combat. You also receive a normal push benefit; it still has a cost unless another ability pays it.",
+    "special": "Bodyguard",
+    "special_text": "When protecting a crewmate, resist at +1d. When you actually take harm, clear 1 stress. This is the S&V ability, not the different Blades ability with the same name.",
+    "heritage": "Colonist; family maintained a failing frontier settlement.",
+    "background": "Military; former convoy security specialist.",
+    "friend": "Shod, a weapons dealer. You return malfunctioning gear rather than sell it on.",
+    "rival": "Chon-zek, a bounty hunter. You refused to hand over a civilian.",
+    "vice": "Obligation; support an injured convoy mate through a local mutual-aid fund (original campaign contact).",
+    "tie": "Silk talked down a search team while you carried an injured worker. Echo stayed with you after a bad Way crossing.",
+    "drive": "Bring your people home without turning every guard into a corpse.",
+    "look": "Heavy work boots, battered convoy coat, deliberately open hands.",
+    "gear": "Vera fine sniper rifle 2; Zmei fine flamethrower 2; Sunder fine vibro-blade 1; Zarathustra detonator launcher 2; fine martial-art style 0; mystic ammunition 0. Heavy/illegal armament may draw extra Heat. Suggested first-job choice: ordinary blaster and armor, revealed as needed.",
+    "xp": "Force or threats",
+    "portrait": "brace",
+    "resistance": {
+      "Insight": 2,
+      "Prowess": 3,
+      "Resolve": 1
+    },
+    "vice_dice": 1
+  },
+  {
+    "slug": "pregen-echo",
+    "name": "Iri “Echo” Venn",
+    "book": "Mystic",
+    "sheet": 4,
+    "role": "Notice what the Way is doing without deciding that everything strange is an enemy.",
+    "actions": {
+      "Attune": 2,
+      "Scramble": 1,
+      "Study": 1,
+      "Doctor": 1,
+      "Consort": 1,
+      "Skulk": 1
+    },
+    "base": {
+      "Attune": 2,
+      "Scramble": 1
+    },
+    "starting": "The Way",
+    "start_text": "Spend a shared Gambit instead of a stress cost, including pushing or resistance. A variable-cost activation’s features are covered together; decide openly which pool resource you spend.",
+    "special": "Warded",
+    "special_text": "Use special armor to resist a Way attack or artifact-use consequence, or to push when using mystic powers. A special-armor push costs no stress. The box refreshes when choosing load for a job.",
+    "heritage": "Wanderer; raised between stations and shrines.",
+    "background": "Cult; left a doctrinal school over how it treated Urbots.",
+    "friend": "Horux, a former teacher. They still answer your questions.",
+    "rival": "Blish, a fellow mystic. They think your compassion compromises discipline.",
+    "vice": "Weird; listening to low-level Way echoes with Hicks, a mystic supplier (campaign use of a published contact).",
+    "tie": "Anchor trusts you with fears they will not name. You helped Mercy keep a frightened patient calm.",
+    "drive": "Learn what the sector is trying to tell people nobody listens to.",
+    "look": "Travel wraps, masked face, small ritual knots along one sleeve.",
+    "gear": "Fine melee weapon 2; offerings 0; trappings of religion 1; outdated religious outfit 1; travel memento 0; Precursor artifact 1. The pregen artifact is an inert focus for recognizing nearby Way resonances, not a universal key, extra power, or solved research project.",
+    "xp": "Wisdom or the Way",
+    "portrait": "bell",
+    "resistance": {
+      "Insight": 2,
+      "Prowess": 2,
+      "Resolve": 2
+    },
+    "vice_dice": 2
+  },
+  {
+    "slug": "pregen-mercy",
+    "name": "Sana “Mercy” Pell",
+    "book": "Stitch",
+    "sheet": 8,
+    "role": "Keep the crew alive and see the person inside the problem.",
+    "actions": {
+      "Doctor": 2,
+      "Study": 1,
+      "Consort": 1,
+      "Sway": 1,
+      "Scramble": 1,
+      "Hack": 1
+    },
+    "base": {
+      "Doctor": 2,
+      "Study": 1
+    },
+    "starting": "I’m a Doctor, Not a…",
+    "start_text": "Push to use your Doctor rating for a different action, explaining the patient, research, or posting that taught the trick. The normal push benefit applies as in the core rules.",
+    "special": "Physicker",
+    "special_text": "Study ailments, injuries, bodies, and crime scenes. Crew recovery rolls gain +1d when you help with treatment. This stacks with the ship’s Medical Bay bonus; it does not grant the separate Patch ability.",
+    "heritage": "Imperial; family served a district hospital on Warren.",
+    "background": "Academic; completed medical training, then left a restrictive research grant.",
+    "friend": "Alben, a former patient. You kept their care confidential.",
+    "rival": "Lynie, a hospital administrator. You refused a politically useful diagnosis.",
+    "vice": "Obligation; run a small free clinic rota through Juda, a doctor (campaign relationship).",
+    "tie": "Fuse repairs the equipment you cannot afford to replace; you make sure they occasionally eat.",
+    "drive": "Keep treatment from becoming leverage over patients.",
+    "look": "Plain medical coat, rolled sleeves, a case with more patches than labels.",
+    "gear": "Fine medkit 2; fine bedside manner 0; fine clothing 1; recognizable medic garb 0; candies/treats 1; syringes/applicators 0. A medical kit does not automatically clear harm during a job; use Doctor and the recovery rules, not an unselected ability.",
+    "xp": "Insight or compassion",
+    "portrait": "mara",
+    "resistance": {
+      "Insight": 3,
+      "Prowess": 1,
+      "Resolve": 2
+    },
+    "vice_dice": 1
+  }
+]
