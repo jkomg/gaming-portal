@@ -1,6 +1,6 @@
 # GM: After the quiet orbit
 
-**Original follow-on opportunities inspired by Deep Cuts' approach to faction pressure.** Nothing here is required to explain the teaching job. Start from what the crew did and whom they now care about. These notes are private; let public discoveries enter the wiki through play.
+**Optional follow-on opportunities for the core S&V learning run.** Nothing here is required to explain the teaching job. Start from what the crew did and whom they now care about. These notes are private; let public discoveries enter the wiki through play.
 
 ## The larger question
 
@@ -45,6 +45,6 @@ Use four six-segment faction clocks, initially 0, adjusted from the actual start
 
 After each job, choose relevant faction actions and use the core fortune procedure where uncertain. Announce what the crew could reasonably learn. Not every clock ticks every downtime. Advance one or two pressures that actually moved. Hostility should produce offers, obstacles, and choices before an unavoidable confrontation.
 
-## Rules follow the campaign, not the theme
+## Keep learning through play
 
-Run at least the teaching session on core S&V. A personal autonomy story might benefit from the Trauma overlay; route politics do not require Threat Rolls or the Deep Cuts tithe. Agree a module because of a table need and test it separately. Keep the [compatibility assessment](/sav/wiki/deep-cuts-compatibility) as the decision record and the session log as evidence.
+Continue with core S&V. Introduce rules as they become relevant, and use the session log to record what the crew learns and changes.

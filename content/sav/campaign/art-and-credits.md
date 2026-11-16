@@ -1,6 +1,6 @@
 # Sources and artwork
 
-This is an unofficial personal campaign for **Scum and Villainy**, by Stras Acimovic and John LeBoeuf-Little, published by Evil Hat Productions. **Blades in the Dark** and **Deep Cuts** are by John Harper. Their games, setting, and artwork belong to their respective rights holders. The supplied purchased/reference PDFs stay in the local Docs folder; the site does not distribute the rulebooks, character-sheet PDFs, or full rules text.
+This is an unofficial personal campaign for **Scum and Villainy**, by Stras Acimovic and John LeBoeuf-Little, published by Evil Hat Productions. Their games, setting, and artwork belong to their respective rights holders. The supplied purchased/reference PDFs stay in the local Docs folder; the site does not distribute the rulebooks, character-sheet PDFs, or full rules text.
 
 ## Rules consulted
 
@@ -10,9 +10,8 @@ This is an unofficial personal campaign for **Scum and Villainy**, by Stras Acim
 - SaV-Release-GM_Sheets.pdf: table procedure reference.
 - SaV-Release-Sheets_Blank_Muscle.pdf: optional blank custom character sheet; not a separate playbook.
 - SaV-Release-Blank_System.pdf: a blank system worksheet for later original locations.
-- Blades_Deep_Cuts_v1_1_pages.pdf: the supplied Deep Cuts rules and narrative material; printed page numbers match this PDF's single-page numbering.
 
-The original job selects entries from S&V pp. 127, 338–339 and develops a new situation from them. Pregens use paraphrased ability descriptions, not reproduced sheets. The compatibility pages identify printed modules separately from proposed conversions. Kestrel Transfer, Lantern Clinic, the Quiet Orbit's history, and job-specific cast are original campaign additions. Faction names and Procyon setting are published S&V material. Art is illustrative casting, not an assertion that a photographed person endorses this fiction.
+The original job selects entries from S&V pp. 127, 338–339 and develops a new situation from them. Pregens use paraphrased ability descriptions, not reproduced sheets. Kestrel Transfer, Lantern Clinic, the Quiet Orbit's history, and job-specific cast are original campaign additions. Faction names and Procyon setting are published S&V material. Art is illustrative casting, not an assertion that a photographed person endorses this fiction.
 
 ## Space image
 

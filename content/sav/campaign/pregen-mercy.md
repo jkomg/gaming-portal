@@ -48,4 +48,4 @@ Stress 0/9; trauma none (0/4); harm none; **healing 0/6**; personal CRED 0/4; st
 
 At session end, review your specialty (**insight or compassion**), expressing beliefs/drives/heritage/background, and trouble from vice/trauma. Each gives 1 XP if it occurred, 2 if repeatedly. Desperate actions mark attribute XP when rolled. Do not reset stress or harm at the end of the job.
 
-**Active rules:** core S&V only. The proposed Deep Cuts options require a separate table decision.
+**Active rules:** core S&V only.

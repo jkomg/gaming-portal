@@ -7,6 +7,8 @@
 --apply uses the portal's normal DATABASE_URL (local SQLite when unset).
 Existing pages and campaign settings are preserved. --refresh explicitly replaces
 only pages previously owned by this importer; hand-created slug collisions fail.
+Refresh also removes the three retired importer-owned conversion/playtest pages
+and updates the former default campaign description and Rules category label.
 Use the same flag to update imported content after re-exporting its source.
 """
 from __future__ import annotations

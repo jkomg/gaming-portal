@@ -6,15 +6,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / 'content/sav'
 PAGES = [
-    ('start-here', 'Start here', 'lore', 'active', 'A ready crew, a short teaching job, and a separate Deep Cuts conversion study.'),
+    ('start-here', 'Start here', 'lore', 'active', 'A ready crew and a short teaching job for learning core Scum and Villainy.'),
     ('a-breathing-cargo', 'A Breathing Cargo', 'jobs', 'active', 'Move a living specimen through a local Rin customs checkpoint.'),
     ('quiet-orbit', 'The Quiet Orbit', 'characters', 'active', 'A completed Stardancer with starting systems, upgrades, CRED, and faction ties.'),
     ('pregens', 'Choose a pregen', 'characters', 'active', 'Six complete scoundrels for a ten-minute pickup.'),
     ('first-job-reference', 'Your first S&V job', 'rules', 'active', 'Core actions, Gambits, equipment, and the complete aftermath loop.'),
     ('people-and-factions', 'People and factions', 'factions', 'active', 'The known cast and starting relationships around the ship.'),
-    ('deep-cuts-compatibility', 'Can Deep Cuts work in S&V?', 'rules', 'active', 'A sourced module assessment that preserves S&V ship and Gambit mechanics.'),
-    ('deep-cuts-playtest', 'Deep Cuts playtest packet', 'rules', 'active', 'An opt-in Trauma pilot, optional Harm trial, and an observation log.'),
-    ('threat-roll-prototype', 'Experimental Threat Rolls', 'rules', 'active', 'An inactive conversion draft with Gambit rulings and an ability audit.'),
     ('atlas-notes', 'Atlas notes', 'locations', 'active', 'Original local route diagram; all starter sites are in Rin.'),
     ('art-and-credits', 'Sources and artwork', 'lore', 'active', 'Rule references, image licenses, portrait provenance, and map authorship.'),
     ('gm-a-breathing-cargo', 'GM: A Breathing Cargo', 'gm', 'draft', 'Private teaching-job preparation, clocks, stakes, and aftermath.'),
@@ -30,13 +27,13 @@ for name, book in [('drift', 'Pilot'), ('fuse', 'Mechanic'), ('silk', 'Speaker')
 
 def export():
     categories = [('lore', 'Start Here', 'bi-book-fill'), ('characters', 'Crew and Characters', 'bi-people-fill'),
-                  ('jobs', 'Jobs', 'bi-briefcase-fill'), ('rules', 'Rules and Experiments', 'bi-journal-text'),
+                  ('jobs', 'Jobs', 'bi-briefcase-fill'), ('rules', 'Rules', 'bi-journal-text'),
                   ('factions', 'People and Factions', 'bi-shield-fill'), ('locations', 'Locations', 'bi-geo-alt-fill'),
                   ('sessions', 'Sessions', 'bi-calendar-event'), ('gm', 'GM Preparation', 'bi-lock-fill')]
     payload = {'campaign': {
         'slug': 'sav', 'name': 'Scum and Villainy: Quiet Orbit', 'system': 'Scum and Villainy',
         'status': 'upcoming', 'cover_image_url': '/static/sav/carina.jpg',
-        'description': 'A patched freighter takes a living cargo through Rin customs. A ready-to-play teaching job opens into faction choices and optional Deep Cuts experiments.',
+        'description': 'A patched freighter takes a living cargo through Rin customs. A ready-to-play learning run of core Scum and Villainy, with a completed crew and a short teaching job.',
         'wiki_categories': [dict(slug=s, name=n, icon=i) for s, n, i in categories],
     }, 'pages': []}
     for slug, title, category, status, summary in PAGES:
