@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / 'scripts/fixtures/sav_campaign.json'
 
 SOURCE = 'sav-seed'
+RETIRED_PAGES = ('deep-cuts-compatibility', 'deep-cuts-playtest', 'threat-roll-prototype')
 
 
 def load_payload():
@@ -26,7 +27,7 @@ def load_payload():
 
 
 def seed(payload=None, refresh=False):
-    """Run in an app context; one transaction, no deletion or unrelated updates."""
+    """Preserve edits by default; explicit refresh also removes retired seed pages."""
     from app.db import Campaign, WikiPage, db
     if payload is None:
         payload = load_payload()
@@ -48,6 +49,23 @@ def seed(payload=None, refresh=False):
             ]
         if not campaign.cover_image_url:
             campaign.cover_image_url = data.get('cover_image_url', '')
+        if refresh:
+            WikiPage.query.filter(
+                WikiPage.campaign_id == campaign.id,
+                WikiPage.source == SOURCE,
+                WikiPage.slug.in_(RETIRED_PAGES),
+            ).delete(synchronize_session='fetch')
+            # Update the old seed defaults, preserving staff-authored metadata.
+            if campaign.description == (
+                'A patched freighter takes a living cargo through Rin customs. '
+                'A ready-to-play teaching job opens into faction choices and optional Deep Cuts experiments.'
+            ):
+                campaign.description = data['description']
+            campaign.wiki_categories = [
+                dict(category, name='Rules')
+                if category['slug'] == 'rules' and category.get('name') == 'Rules and Experiments'
+                else category for category in campaign.wiki_categories
+            ]
         for page in payload['pages']:
             row = WikiPage.query.filter_by(campaign_id=campaign.id, slug=page['slug']).first()
             if row is not None:

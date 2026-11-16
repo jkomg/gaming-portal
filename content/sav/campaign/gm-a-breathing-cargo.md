@@ -73,6 +73,6 @@ Negotiating freedom, a future visit, or a different caretaker is possible. Do no
 4. **Factions:** explain any change earned by a consequential choice. Clinic access is not automatically Mendicant membership. Honoring the Cobalt favor can happen later; don't charge it again at payoff.
 5. **Entanglement:** in Rin, roll one d6 in its current Wanted column (normally 0); 6 escalates to the next table as the book directs. Use the actual result, reskinned to known people. Allow the crew to address it through play. Do not replace the roll with a mandatory chase.
 6. **Downtime:** each active PC gets two activities because the crew is not at war; extras cost 1 CRED. Use real stress/harm from play; demonstrate recovery only if someone is hurt. Medical Bay +1d and Mercy's applicable Physicker bonus can stack. Fuse has the extra repair activity and free repair supplied by Bailing Wire. Silk's extra activity is acquire asset/lay low only; lay low requires another system. A safe local return to the clinic does not meet that requirement.
-7. **XP:** read character and crew triggers aloud. Training normally grants XP; core recovery is a six-clock clearing all harm. Do not substitute Deep Cuts advancement, training costs, or healing mid-session.
+7. **XP:** read character and crew triggers aloud. Training normally grants XP; core recovery is a six-clock clearing all harm.
 
 Read [the supporting cast](/sav/wiki/gm-supporting-cast) for reactions and [After the quiet orbit](/sav/wiki/gm-next-arc) for opportunities driven by the outcome.

@@ -1,6 +1,6 @@
 # Your first S&V job
 
-**Active rules: core Scum and Villainy.** Deep Cuts options on other pages are inactive proposals. Printed core page numbers are ten less than the page number in the supplied full-text PDF.
+**Active rules: core Scum and Villainy.** Printed core page numbers are ten less than the page number in the supplied full-text PDF.
 
 ## Action and consequence
 

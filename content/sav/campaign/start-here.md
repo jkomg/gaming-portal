@@ -10,11 +10,7 @@ A patched freighter, a breathing cargo case, and one customs checkpoint between 
 - Agree on boundaries for captivity, bodily transformation, coercion, and violence, plus a simple way to pause a scene. The job can use a strange animal instead of an intelligent captive if the table prefers.
 - Introduce one crew tie and get to the handoff. Names, pronouns, and appearance can change freely.
 
-The first session uses **core Scum and Villainy**, not a blended ruleset. Keep its Gambits, per-system Heat, ship upkeep, healing, and character abilities.
-
-## Exploring Deep Cuts afterward
-
-Start with [the compatibility assessment](/sav/wiki/deep-cuts-compatibility). [The playtest packet](/sav/wiki/deep-cuts-playtest) contains a small Trauma overlay and explicitly experimental alternatives for other modules. Nothing is enabled simply because that page exists.
+This learning run uses **core Scum and Villainy**. Keep its Gambits, per-system Heat, ship upkeep, healing, and character abilities.
 
 The [route atlas](/sav/atlas/) is a player-safe schematic of this job's local route, not a replacement for the published Procyon map. [Local people and factions](/sav/wiki/people-and-factions) introduce the starting cast.
 

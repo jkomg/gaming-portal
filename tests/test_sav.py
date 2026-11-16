@@ -46,7 +46,7 @@ class SavCampaignTests(unittest.TestCase):
         self.campaign.name = 'Our ship'
         db.session.commit()
         seed()
-        self.assertEqual(self.campaign.wiki_pages.count(), 20)
+        self.assertEqual(self.campaign.wiki_pages.count(), 17)
         self.assertEqual(self.campaign.name, 'Our ship')
         self.assertEqual(page.body_markdown, 'Our actual crew history')
         self.assertEqual(page.status, 'archived')
@@ -78,6 +78,30 @@ class SavCampaignTests(unittest.TestCase):
         with self.client.session_transaction() as session:
             session.clear()
         self.assertEqual(self.client.get('/sav/atlas/').status_code, 404)
+
+    def test_learning_run_refresh_removes_only_retired_seed_pages(self):
+        retired = ['deep-cuts-compatibility', 'deep-cuts-playtest', 'threat-roll-prototype']
+        self.campaign.description = (
+            'A patched freighter takes a living cargo through Rin customs. '
+            'A ready-to-play teaching job opens into faction choices and optional Deep Cuts experiments.'
+        )
+        self.campaign.wiki_categories = [{'slug': 'rules', 'name': 'Rules and Experiments'}]
+        for slug in retired[:2]:
+            db.session.add(WikiPage(campaign_id=self.campaign.id, slug=slug,
+                                    title='Old experiment', source='sav-seed', status='active'))
+        manual = WikiPage(campaign_id=self.campaign.id, slug=retired[2],
+                          title='Staff notes', source='manual', status='draft')
+        db.session.add(manual)
+        db.session.commit()
+        seed()
+        self.assertEqual(self.campaign.wiki_pages.filter(WikiPage.slug.in_(retired)).count(), 3)
+        seed(refresh=True)
+        self.assertEqual(self.campaign.wiki_pages.filter(WikiPage.slug.in_(retired)).all(), [manual])
+        self.assertEqual(self.campaign.description, self.payload['campaign']['description'])
+        self.assertEqual(self.campaign.wiki_categories[0]['name'], 'Rules')
+        for slug in retired[:2]:
+            self.assertEqual(self.client.get('/sav/wiki/' + slug).status_code, 404)
+        self.assertNotRegex(json.dumps(self.payload).lower(), r'deep.cuts|threat-roll-prototype')
 
     def test_fixture_sources_links_images_and_player_safe_atlas(self):
         all_slugs = {p['slug'] for p in self.payload['pages']}
