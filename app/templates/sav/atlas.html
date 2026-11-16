@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Rin route atlas · {{ campaign.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='sav/atlas.css') }}">
+  <script defer src="{{ url_for('static', filename='sav/atlas.js') }}"></script>
+</head>
+<body>
+<header><a href="{{ url_for('wiki.index', campaign_slug='sav') }}">← Quiet Orbit wiki</a><span>RIN / LOCAL TRANSFER NETWORK</span></header>
+<main>
+  <aside>
+    <p class="eyebrow">A BREATHING CARGO</p>
+    <h1>Quiet orbit.<br>Complicated delivery.</h1>
+    <p>One living consignment. A medical destination. Customs between them. Choose a site to see what the crew knows.</p>
+    <label for="faction">Access and jurisdiction</label>
+    <select id="faction">
+      <option value="all">All known sites</option>
+      {% for group in sites | map(attribute='group') | unique %}<option>{{ group }}</option>{% endfor %}
+    </select>
+    <p id="status" role="status">{{ sites | length }} known sites · all within Rin</p>
+    <nav id="directory" aria-label="Known sites">
+      {% for site in sites %}
+      <button type="button" data-site="{{ site.id }}" data-group="{{ site.group }}" aria-controls="detail-{{ site.id }}" aria-pressed="false">{{ site.name }}<small>{{ site.group }}</small></button>
+      {% endfor %}
+    </nav>
+    <section id="details" aria-label="Site details" aria-live="polite">
+      {% for site in sites %}
+      <article id="detail-{{ site.id }}" data-detail="{{ site.id }}">
+        <h2>{{ site.name }}</h2><p>{{ site.access }}</p><p>{{ site.note }}</p>
+        <a href="{{ url_for('wiki.page', campaign_slug='sav', page_slug=site.wiki) }}">Open wiki reference →</a>
+      </article>
+      {% endfor %}
+    </section>
+    <p class="credits">Original campaign schematic, approximate placements. Warren and the Procyon setting are from Scum and Villainy; Kestrel and Lantern are original additions. <a href="/sav/wiki/atlas-notes">Atlas notes</a>.</p>
+  </aside>
+  <section class="map-stage" aria-label="Local Rin route diagram">
+    <div class="map-caption"><span>PROCYON SECTOR / RIN</span><strong>LOCAL ROUTE · NOT TO SCALE</strong></div>
+    <svg viewBox="0 0 1060 560" role="group" aria-labelledby="map-title map-desc">
+      <title id="map-title">Kestrel to Lantern Clinic</title>
+      <desc id="map-desc">Original local route schematic. Warren is shown for context. The bonded desk connects to the Quiet Orbit berth, then customs, then the clinic. Select a site or use the directory. All sites are in Rin.</desc>
+      <g class="orbits" aria-hidden="true"><circle cx="130" cy="330" r="65"/><circle cx="130" cy="330" r="170"/><circle cx="130" cy="330" r="315"/><circle cx="130" cy="330" r="530"/></g>
+      <g class="routes" aria-hidden="true"><path d="M130 330 L390 130 L420 350 L680 220 L870 410"/><path class="alternate" d="M420 350 Q650 520 870 410"/></g>
+      <text x="565" y="478" class="route-note" aria-hidden="true">SERVICE LANES / ASK ASHA</text>
+      {% for site in sites %}
+      <g class="site" data-site="{{ site.id }}" data-group="{{ site.group }}" transform="translate({{ site.x }},{{ site.y }})" tabindex="0" role="button" aria-label="{{ site.name }}; {{ site.group }}" aria-controls="detail-{{ site.id }}" aria-pressed="false">
+        <circle class="site-halo" r="27"/><circle class="site-dot" r="8"/>
+        <text y="-44" text-anchor="middle">{{ site.name }}</text>
+        <text y="51" text-anchor="middle" class="site-group">{{ site.group }}</text>
+      </g>
+      {% endfor %}
+    </svg>
+    <p class="map-legend"><span class="legend-line"></span> Known freight route <span class="legend-line alternate"></span> Possible service approach</p>
+    <p class="credits">Space image: <a href="https://esawebb.org/images/carinanebula3/">NASA, ESA, CSA, and STScI, J. DePasquale (STScI)</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+  </section>
+</main>
+<noscript><p class="noscript">All site details and wiki links are available in the directory above. JavaScript adds filtering and linked selection.</p></noscript>
+</body>
+</html>

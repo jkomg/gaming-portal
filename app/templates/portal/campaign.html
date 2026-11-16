@@ -12,6 +12,7 @@
 {% set _accent_map = {
     'mcbn':  ('#d83a4a', '#ff8a96'),
     'gotw':  ('#6d6cf5', '#a9a8ff'),
+    'sav':   ('#34b7b0', '#9ee4da'),
     'vecna': ('#a64dff', '#c89bff'),
     'keys':  ('#d4b352', '#ecd58a'),
 } %}
@@ -110,6 +111,9 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% if campaign.slug == 'sav' %}
+{% include 'sav/credits.html' %}
+{% endif %}
 {% if campaign.slug == 'blades' %}
 <p style="text-align:center"><a href="{{ url_for('wiki.page', campaign_slug='blades', page_slug='art-and-credits') }}">Artwork sources and credits</a></p>
 {% endif %}

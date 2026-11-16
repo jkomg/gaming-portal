@@ -66,6 +66,9 @@ def create_app(*, seed_campaigns: bool = True) -> Flask:
 
     from .blueprints.blades import bp as blades_bp
 
+    from .blueprints.sav import bp as sav_bp
+
+    app.register_blueprint(sav_bp)
     app.register_blueprint(blades_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(portal_bp)
@@ -106,6 +109,8 @@ def create_app(*, seed_campaigns: bool = True) -> Flask:
             _seed_campaigns_if_empty()
             from .blades_campaign import seed as seed_blades
             seed_blades()
+            from .sav_campaign import seed as seed_sav
+            seed_sav()
 
     return app
 

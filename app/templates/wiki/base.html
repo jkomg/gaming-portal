@@ -14,6 +14,7 @@
 {% set _accent_map = {
     'mcbn':  ('#d83a4a', '#ff8a96'),
     'gotw':  ('#6d6cf5', '#a9a8ff'),
+    'sav':   ('#34b7b0', '#9ee4da'),
     'vecna': ('#a64dff', '#c89bff'),
     'keys':  ('#d4b352', '#ecd58a'),
 } %}
@@ -45,6 +46,8 @@
 
         {% if campaign.slug == 'blades' %}
         <a class="wiki-nav-cat" href="{{ url_for('blades.atlas') }}">Atlas</a>
+        {% elif campaign.slug == 'sav' %}
+        <a class="wiki-nav-cat" href="{{ url_for('sav.atlas') }}">Route atlas</a>
         {% endif %}
 
         {# Right side #}
@@ -163,6 +166,10 @@
 
     {% if campaign.slug == 'blades' %}
     <p class="wiki-container"><a href="{{ url_for('wiki.page', page_slug='art-and-credits') }}">Artwork sources and credits</a> · Unofficial personal Blades campaign</p>
+    {% endif %}
+
+    {% if campaign.slug == 'sav' %}
+    <div class="wiki-container">{% include 'sav/credits.html' %}</div>
     {% endif %}
 
     <div class="wiki-footer-bottom">

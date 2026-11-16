@@ -15,6 +15,7 @@
 {% set _accent_map = {
     'mcbn':  ('#d83a4a', '#ff8a96'),
     'gotw':  ('#6d6cf5', '#a9a8ff'),
+    'sav':   ('#34b7b0', '#9ee4da'),
     'vecna': ('#a64dff', '#c89bff'),
     'keys':  ('#d4b352', '#ecd58a'),
 } %}
@@ -87,6 +88,7 @@
             {% endif %}
         </div>
     </div>
+{% if featured.slug == 'sav' %}{% include 'sav/credits.html' %}{% endif %}
 </section>
 {% endif %}
 
@@ -137,6 +139,9 @@
                     </div>
                 </div>
             </a>
+            {% if c.slug == 'sav' %}
+            {% include 'sav/credits.html' %}
+            {% endif %}
             {% if is_staff %}
             <div class="portal-campaign-admin-bar">
                 <form method="post" action="{{ url_for('admin.campaign_set_status', slug=c.slug) }}" class="d-flex gap-1 flex-grow-1">
