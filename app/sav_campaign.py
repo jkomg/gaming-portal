@@ -34,6 +34,17 @@ def seed(payload=None, refresh=False):
     data = payload['campaign']
     try:
         campaign = Campaign.query.filter_by(slug=data['slug']).first()
+        if refresh and campaign is not None:
+            # Turso's HTTP adapter autocommits unless an explicit transaction is
+            # opened. Reject every manual collision before metadata changes,
+            # autoflushes, or retired-page deletion can issue a write.
+            collision = WikiPage.query.filter(
+                WikiPage.campaign_id == campaign.id,
+                WikiPage.slug.in_([page['slug'] for page in payload['pages']]),
+                db.or_(WikiPage.source != SOURCE, WikiPage.source.is_(None)),
+            ).first()
+            if collision is not None:
+                raise ValueError(f'Refusing to replace non-imported page: {collision.slug}')
         if campaign is None:
             campaign = Campaign(**{k: v for k, v in data.items() if k != 'wiki_categories'},
                                 wiki_enabled=True, sort_order=11)
