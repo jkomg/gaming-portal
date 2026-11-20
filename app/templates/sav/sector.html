@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Procyon sector atlas · {{ campaign.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='sav/sector/sector-map.css') }}">
+  <script type="module" src="{{ url_for('static', filename='sav/sector/bootstrap.js') }}"></script>
+</head>
+<body>
+  <nav class="atlas-return"><a href="{{ url_for('wiki.index', campaign_slug='sav') }}">Quiet Orbit wiki</a> · <a href="{{ url_for('sav.atlas') }}">Local Rin job route</a>{% if not is_staff %} · <a href="{{ url_for('auth.login') }}">Staff sign-in</a>{% endif %}</nav>
+  <main id="sector-app"><p>Loading the Procyon sector atlas…</p></main>
+  <script type="application/json" id="sector-config">{{ {'geography': url_for('static', filename='sav/sector/sector.json'), 'stateUrl': url_for('sav.sector_state'), 'canEdit': is_staff, 'csrfToken': csrf_token()} | tojson }}</script>
+  <noscript>The sector map needs JavaScript. The <a href="{{ url_for('wiki.page', campaign_slug='sav', page_slug='atlas-notes') }}">atlas notes</a> and local route directory remain available.</noscript>
+</body>
+</html>
