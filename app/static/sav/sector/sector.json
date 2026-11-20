@@ -1,0 +1,661 @@
+{
+  "version": 1,
+  "title": "Procyon Sector",
+  "systems": [
+    {
+      "id": "holt",
+      "name": "Holt",
+      "x": 650,
+      "y": 245,
+      "rx": 285,
+      "ry": 155,
+      "angle": -8,
+      "color": "#eeb96d",
+      "summary": "An old white star, a temperamental Rin gate, and the sealed Hantu gate."
+    },
+    {
+      "id": "rin",
+      "name": "Rin",
+      "x": 400,
+      "y": 780,
+      "rx": 285,
+      "ry": 175,
+      "angle": 12,
+      "color": "#6be0d0",
+      "summary": "The sector’s administrative center and its connection to the wider Hegemony."
+    },
+    {
+      "id": "iota",
+      "name": "Iota",
+      "x": 1060,
+      "y": 880,
+      "rx": 210,
+      "ry": 250,
+      "angle": 18,
+      "color": "#e9ce81",
+      "summary": "A binary star system of industrial worlds, asteroid belts, and shipyards."
+    },
+    {
+      "id": "brekk",
+      "name": "Brekk",
+      "x": 1430,
+      "y": 365,
+      "rx": 265,
+      "ry": 180,
+      "angle": -28,
+      "color": "#bda0ff",
+      "summary": "Culture, education, elite patrons, and difficult dark hyperspace lanes."
+    }
+  ],
+  "locations": [
+    {
+      "id": "mem",
+      "name": "Mem",
+      "system": "holt",
+      "x": 480,
+      "y": 165,
+      "kind": "Ocean world",
+      "summary": "Aquatic Memish communities and Hegemonic settlements.",
+      "tags": [
+        "water",
+        "xenos"
+      ]
+    },
+    {
+      "id": "vos",
+      "name": "Vos",
+      "system": "holt",
+      "x": 790,
+      "y": 285,
+      "kind": "Glimmer",
+      "summary": "Carbon and diamond formations make this a valuable mining world.",
+      "tags": [
+        "mining"
+      ]
+    },
+    {
+      "id": "sonhandra",
+      "name": "Sonhandra",
+      "system": "holt",
+      "x": 570,
+      "y": 355,
+      "kind": "Twilight markets",
+      "summary": "A tidally locked world with busy trade in its twilight settlements.",
+      "tags": [
+        "trade"
+      ]
+    },
+    {
+      "id": "omega",
+      "name": "Planet Omega",
+      "system": "holt",
+      "x": 425,
+      "y": 270,
+      "kind": "Quarantined",
+      "summary": "The Legion has quarantined this dangerous world.",
+      "tags": [
+        "quarantine",
+        "ur"
+      ]
+    },
+    {
+      "id": "hantu",
+      "name": "Hantu Gate",
+      "system": "holt",
+      "x": 955,
+      "y": 160,
+      "kind": "Sealed jumpgate",
+      "summary": "Its destination is unknown; the Hegemony has not activated it.",
+      "tags": [
+        "gate",
+        "sealed"
+      ]
+    },
+    {
+      "id": "junkyard",
+      "name": "Jerec’s Junkyard",
+      "system": "holt",
+      "x": 730,
+      "y": 100,
+      "kind": "Salvage",
+      "summary": "A free-floating market for secondhand ships and equipment.",
+      "tags": [
+        "salvage"
+      ]
+    },
+    {
+      "id": "warren",
+      "name": "Warren",
+      "system": "rin",
+      "x": 220,
+      "y": 880,
+      "kind": "Sector capital",
+      "summary": "A city-covered moon and the Governor’s seat.",
+      "tags": [
+        "capital",
+        "trade"
+      ]
+    },
+    {
+      "id": "vet",
+      "name": "Vet",
+      "system": "rin",
+      "x": 560,
+      "y": 760,
+      "kind": "Gas giant",
+      "summary": "Resource extraction and orbital industry dominate its surroundings.",
+      "tags": [
+        "mining"
+      ]
+    },
+    {
+      "id": "sb176",
+      "name": "Outpost SB-176",
+      "system": "rin",
+      "x": 600,
+      "y": 680,
+      "kind": "Orbital colony",
+      "summary": "A mining platform and space colony above Vet.",
+      "tags": [
+        "station",
+        "guild"
+      ]
+    },
+    {
+      "id": "aleph",
+      "name": "Aleph",
+      "system": "rin",
+      "x": 250,
+      "y": 730,
+      "kind": "Mining world",
+      "summary": "Poisonous gases, unstable ground, and heavily taxed mineral wealth.",
+      "tags": [
+        "mining"
+      ]
+    },
+    {
+      "id": "baftoma",
+      "name": "Baftoma",
+      "system": "rin",
+      "x": 260,
+      "y": 620,
+      "kind": "The Husk",
+      "summary": "A stripped world whose broken remains offer cover for those avoiding pursuit.",
+      "tags": [
+        "ruins"
+      ]
+    },
+    {
+      "id": "ashtari",
+      "name": "Ashtari Cloud",
+      "system": "rin",
+      "x": 560,
+      "y": 570,
+      "kind": "In-system nebula",
+      "summary": "An ancient Ur ship disaster left a difficult cloud favored by pirates.",
+      "tags": [
+        "nebula",
+        "pirates"
+      ]
+    },
+    {
+      "id": "indri",
+      "name": "Indri",
+      "system": "iota",
+      "x": 930,
+      "y": 795,
+      "kind": "Industry",
+      "summary": "A major manufacturing world under polluted skies.",
+      "tags": [
+        "industry"
+      ]
+    },
+    {
+      "id": "amerath",
+      "name": "Amerath",
+      "system": "iota",
+      "x": 1205,
+      "y": 790,
+      "kind": "Gardens & medicine",
+      "summary": "A lush world known for pharmaceutical research and the Mendicant temple.",
+      "tags": [
+        "medicine"
+      ]
+    },
+    {
+      "id": "lithios",
+      "name": "Lithios",
+      "system": "iota",
+      "x": 1100,
+      "y": 1050,
+      "kind": "Ice & ancient palaces",
+      "summary": "Frozen settlements, old palaces, and a sanctioned Yaru creche.",
+      "tags": [
+        "ice",
+        "ur"
+      ]
+    },
+    {
+      "id": "shipyards",
+      "name": "Iota Shipyards",
+      "system": "iota",
+      "x": 845,
+      "y": 995,
+      "kind": "Refit & repair",
+      "summary": "Starsmith yards and licensed workshops service sector traffic.",
+      "tags": [
+        "station",
+        "repair"
+      ]
+    },
+    {
+      "id": "belt-of-fire",
+      "name": "Belt of Fire",
+      "system": "iota",
+      "x": 1110,
+      "y": 925,
+      "kind": "Plasma currents",
+      "summary": "A quarantined region between the binary stars.",
+      "tags": [
+        "quarantine"
+      ]
+    },
+    {
+      "id": "nightfall",
+      "name": "Nightfall",
+      "system": "brekk",
+      "x": 1540,
+      "y": 245,
+      "kind": "Culture & eclipses",
+      "summary": "Thirteen moons make its cycle of light and darkness unusually complex.",
+      "tags": [
+        "culture"
+      ]
+    },
+    {
+      "id": "shimaya",
+      "name": "Shimaya",
+      "system": "brekk",
+      "x": 1300,
+      "y": 300,
+      "kind": "Desert & academy",
+      "summary": "Electrical storms sweep a desert world home to Khalud Academy.",
+      "tags": [
+        "education",
+        "desert"
+      ]
+    },
+    {
+      "id": "aketi",
+      "name": "Aketi",
+      "system": "brekk",
+      "x": 1545,
+      "y": 495,
+      "kind": "Hostile jungle",
+      "summary": "A preserve visited by researchers, poachers, and people avoiding the law.",
+      "tags": [
+        "jungle"
+      ]
+    },
+    {
+      "id": "isotropa",
+      "name": "Isotropa Max Secure",
+      "system": "brekk",
+      "x": 1160,
+      "y": 465,
+      "kind": "Supermax prison",
+      "summary": "An independent prison operation orbiting near Brekk’s star.",
+      "tags": [
+        "prison",
+        "station"
+      ]
+    },
+    {
+      "id": "bright-wind",
+      "name": "Bright Wind",
+      "system": "brekk",
+      "x": 1660,
+      "y": 365,
+      "kind": "Racing grounds",
+      "summary": "A dangerous gas cloud used for illegal races.",
+      "tags": [
+        "racing"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "id": "rin-holt",
+      "a": "rin",
+      "b": "holt",
+      "path": "M510 530 Q520 470 550 410",
+      "label": "Rin–Holt",
+      "x": 475,
+      "y": 465,
+      "status": "open"
+    },
+    {
+      "id": "rin-iota",
+      "a": "rin",
+      "b": "iota",
+      "path": "M690 905 Q770 945 845 930",
+      "label": "Rin–Iota",
+      "x": 735,
+      "y": 935,
+      "status": "open"
+    },
+    {
+      "id": "iota-brekk",
+      "a": "iota",
+      "b": "brekk",
+      "path": "M1190 635 Q1210 580 1255 545",
+      "label": "Iota–Brekk",
+      "x": 1175,
+      "y": 585,
+      "status": "open"
+    },
+    {
+      "id": "rin-hegemony",
+      "a": "rin",
+      "b": "hegemony",
+      "path": "M120 850 L40 925",
+      "label": "Ecliptis / Hegemony",
+      "x": 90,
+      "y": 990,
+      "status": "open"
+    },
+    {
+      "id": "holt-hantu",
+      "a": "holt",
+      "b": "unknown",
+      "path": "M900 190 L1035 95",
+      "label": "Hantu / unknown",
+      "x": 1040,
+      "y": 85,
+      "status": "sealed"
+    }
+  ],
+  "factions": [
+    "Ashen Knives",
+    "Starsmiths Guild",
+    "Guild of Engineers",
+    "Ghosts",
+    "Lost Legion",
+    "Vignerons",
+    "Vigilance",
+    "51st Legion",
+    "Conclave 01",
+    "Starless Veil",
+    "Acolytes of Brashkadesh",
+    "Cobalt Syndicate",
+    "Scarlet Wolves",
+    "Ashtari Cult",
+    "Draxler’s Raiders",
+    "Isotropa Max Secure",
+    "Concordiat Knights",
+    "Yaru (Makers Guild)",
+    "Dyrinek Gang",
+    "Nightspeakers",
+    "Janus Syndicate",
+    "Turner Society",
+    "Sah’iir",
+    "The Agony",
+    "Suneaters",
+    "Echo Wave Riders",
+    "Mendicants",
+    "Counters Guild",
+    "Hegemonic News Network",
+    "Wreckers",
+    "Church of Stellar Flame",
+    "Borniko Syndicate",
+    "The Maelstrom",
+    "Vorex",
+    "House Malklaith",
+    "Cult of the Seekers"
+  ],
+  "sources": [
+    {
+      "title": "Map layout reference: u/Fragrant-Story-4609",
+      "url": "https://www.reddit.com/r/ScumAndVillainy/comments/1n1vyxf/redesigned_the_procyon_system_map_for_rpg_scrum/"
+    },
+    {
+      "title": "Scum and Villainy system and setting",
+      "url": "https://github.com/drewg13/foundryvtt-scum-and-villainy"
+    }
+  ],
+  "defaultState": {
+    "version": 1,
+    "systems": {
+      "holt": {
+        "heat": 0,
+        "wanted": 0,
+        "notes": ""
+      },
+      "rin": {
+        "heat": 0,
+        "wanted": 0,
+        "notes": ""
+      },
+      "iota": {
+        "heat": 0,
+        "wanted": 0,
+        "notes": ""
+      },
+      "brekk": {
+        "heat": 0,
+        "wanted": 0,
+        "notes": ""
+      }
+    },
+    "factionState": {
+      "Ashen Knives": {
+        "status": 0
+      },
+      "Starsmiths Guild": {
+        "status": 0
+      },
+      "Guild of Engineers": {
+        "status": 0
+      },
+      "Ghosts": {
+        "status": 0
+      },
+      "Lost Legion": {
+        "status": 0
+      },
+      "Vignerons": {
+        "status": 0
+      },
+      "Vigilance": {
+        "status": 0
+      },
+      "51st Legion": {
+        "status": 0
+      },
+      "Conclave 01": {
+        "status": 1
+      },
+      "Starless Veil": {
+        "status": 0
+      },
+      "Acolytes of Brashkadesh": {
+        "status": 0
+      },
+      "Cobalt Syndicate": {
+        "status": 1
+      },
+      "Scarlet Wolves": {
+        "status": 0
+      },
+      "Ashtari Cult": {
+        "status": 0
+      },
+      "Draxler’s Raiders": {
+        "status": 0
+      },
+      "Isotropa Max Secure": {
+        "status": 0
+      },
+      "Concordiat Knights": {
+        "status": 0
+      },
+      "Yaru (Makers Guild)": {
+        "status": 0
+      },
+      "Dyrinek Gang": {
+        "status": 0
+      },
+      "Nightspeakers": {
+        "status": 0
+      },
+      "Janus Syndicate": {
+        "status": 0
+      },
+      "Turner Society": {
+        "status": 0
+      },
+      "Sah’iir": {
+        "status": 0
+      },
+      "The Agony": {
+        "status": 0
+      },
+      "Suneaters": {
+        "status": 0
+      },
+      "Echo Wave Riders": {
+        "status": 0
+      },
+      "Mendicants": {
+        "status": 1
+      },
+      "Counters Guild": {
+        "status": -2
+      },
+      "Hegemonic News Network": {
+        "status": 0
+      },
+      "Wreckers": {
+        "status": 0
+      },
+      "Church of Stellar Flame": {
+        "status": -1
+      },
+      "Borniko Syndicate": {
+        "status": 0
+      },
+      "The Maelstrom": {
+        "status": 0
+      },
+      "Vorex": {
+        "status": 0
+      },
+      "House Malklaith": {
+        "status": 0
+      },
+      "Cult of the Seekers": {
+        "status": 0
+      }
+    },
+    "presence": [
+      {
+        "location": "warren",
+        "faction": "House Malklaith",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "warren",
+        "faction": "Cobalt Syndicate",
+        "strength": "Presence",
+        "note": ""
+      },
+      {
+        "location": "warren",
+        "faction": "Counters Guild",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "warren",
+        "faction": "Hegemonic News Network",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "aleph",
+        "faction": "Cobalt Syndicate",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "sb176",
+        "faction": "Guild of Engineers",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "ashtari",
+        "faction": "The Maelstrom",
+        "strength": "Presence",
+        "note": ""
+      },
+      {
+        "location": "shipyards",
+        "faction": "Starsmiths Guild",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "amerath",
+        "faction": "Mendicants",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "lithios",
+        "faction": "Yaru (Makers Guild)",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "isotropa",
+        "faction": "Isotropa Max Secure",
+        "strength": "HQ",
+        "note": ""
+      },
+      {
+        "location": "bright-wind",
+        "faction": "Echo Wave Riders",
+        "strength": "Presence",
+        "note": ""
+      }
+    ],
+    "markers": [],
+    "routes": {
+      "rin-holt": {
+        "status": "open",
+        "notes": ""
+      },
+      "rin-iota": {
+        "status": "open",
+        "notes": ""
+      },
+      "iota-brekk": {
+        "status": "open",
+        "notes": ""
+      },
+      "rin-hegemony": {
+        "status": "open",
+        "notes": ""
+      },
+      "holt-hantu": {
+        "status": "sealed",
+        "notes": ""
+      }
+    },
+    "ship": {
+      "location": "warren"
+    }
+  }
+}

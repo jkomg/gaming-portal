@@ -96,6 +96,15 @@ class Campaign(db.Model):
         return ''
 
 
+class SectorSnapshot(db.Model):
+    """Player-safe, versioned snapshot for a campaign's public sector atlas."""
+    __tablename__ = 'sector_snapshots'
+    campaign_id = db.Column(db.Integer, db.ForeignKey('campaigns.id'), primary_key=True)
+    revision = db.Column(db.Integer, nullable=False, default=1)
+    state_json = db.Column(db.Text, nullable=False)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
 class SyncLog(db.Model):
     __tablename__ = 'sync_logs'
     id           = db.Column(db.Integer, primary_key=True)
